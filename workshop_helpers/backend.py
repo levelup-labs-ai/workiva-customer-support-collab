@@ -82,6 +82,15 @@ def get_customer_profile(customer_id: str) -> dict:
 
 
 @function_tool
+def get_order_details(order_id: str) -> dict:
+    """Get the full order record for refunds, shipping issues, warranties, and fulfillment problems."""
+    order = ORDER_DB.get(order_id)
+    if not order:
+        return {"error": f"Order not found: {order_id}"}
+    return {"order_id": order_id, **order}
+
+
+@function_tool
 def check_return_eligibility(order_id: str) -> dict:
     """Check whether an order is within the 30-day return window."""
     order = ORDER_DB.get(order_id)
@@ -134,39 +143,78 @@ def take_action(customer_id: str, action: str, details: str) -> dict:
     return result
 
 
-TOOLS = [get_customer_profile, check_return_eligibility, get_product_info, take_action]
+TOOLS = [get_customer_profile, get_order_details, check_return_eligibility, get_product_info, take_action]
 
 
-def build_support_agent(authenticated_customer_id: str, model: str = "gpt-4o-mini") -> Agent:
+def default_support_agent_instructions(authenticated_customer_id: str) -> str:
+    return (
+        "You are a customer support agent for an online retail store. "
+        f"The authenticated customer ID for this session is: {authenticated_customer_id}. "
+        "Always call get_customer_profile first to understand the customer before responding. "
+        "Use get_order_details for shipping, billing, warranty, and fulfillment issues tied to an order. "
+        "Use check_return_eligibility before approving or declining any return. "
+        "If the tools give you enough information to complete the request, you must take the action before replying. "
+        "Use take_action for any refund, escalation, label, replacement, cancellation, or email. "
+        "Do not merely promise an action in prose when a tool can perform it. "
+        "Mention the confirmed action result in the response. "
+        "Be empathetic and specific. Never invent figures or dates."
+    )
+
+
+def support_agent_instructions_template() -> str:
+    return (
+        "You are a customer support agent for an online retail store. "
+        "The authenticated customer ID for this session is: {authenticated_customer_id}. "
+        "Always call get_customer_profile first to understand the customer before responding. "
+        "Use get_order_details for shipping, billing, warranty, and fulfillment issues tied to an order. "
+        "Use check_return_eligibility before approving or declining any return. "
+        "If the tools give you enough information to complete the request, you must take the action before replying. "
+        "Use take_action for any refund, escalation, label, replacement, cancellation, or email. "
+        "Do not merely promise an action in prose when a tool can perform it. "
+        "Mention the confirmed action result in the response. "
+        "Be empathetic and specific. Never invent figures or dates."
+    )
+
+
+def build_support_agent(
+    authenticated_customer_id: str,
+    model: str = "gpt-4o-mini",
+    instructions: str | None = None,
+) -> Agent:
     return Agent(
         name="Customer Support Agent",
-        instructions=(
-            "You are a customer support agent for an online retail store. "
-            f"The authenticated customer ID for this session is: {authenticated_customer_id}. "
-            "Always call get_customer_profile first to understand the customer before responding. "
-            "Use check_return_eligibility before approving or declining any return. "
-            "If the tools give you enough information to complete the request, you must take the action before replying. "
-            "Use take_action for any refund, escalation, label, replacement, cancellation, or email. "
-            "Do not merely promise an action in prose when a tool can perform it. "
-            "Mention the confirmed action result in the response. "
-            "Be empathetic and specific. Never invent figures or dates."
-        ),
+        instructions=instructions or default_support_agent_instructions(authenticated_customer_id),
         tools=TOOLS,
         model=model,
     )
 
 
-async def run_support_agent_async(customer_message: str, authenticated_customer_id: str, model: str = "gpt-4o-mini"):
-    agent = build_support_agent(authenticated_customer_id=authenticated_customer_id, model=model)
+async def run_support_agent_async(
+    customer_message: str,
+    authenticated_customer_id: str,
+    model: str = "gpt-4o-mini",
+    instructions: str | None = None,
+):
+    agent = build_support_agent(
+        authenticated_customer_id=authenticated_customer_id,
+        model=model,
+        instructions=instructions,
+    )
     return await Runner.run(agent, customer_message)
 
 
-def run_support_agent(customer_message: str, authenticated_customer_id: str, model: str = "gpt-4o-mini") -> dict:
+def run_support_agent(
+    customer_message: str,
+    authenticated_customer_id: str,
+    model: str = "gpt-4o-mini",
+    instructions: str | None = None,
+) -> dict:
     result = asyncio.run(
         run_support_agent_async(
             customer_message=customer_message,
             authenticated_customer_id=authenticated_customer_id,
             model=model,
+            instructions=instructions,
         )
     )
     return {
@@ -180,9 +228,14 @@ def run_support_agent(customer_message: str, authenticated_customer_id: str, mod
     }
 
 
-def run_support_agent_threadsafe(customer_message: str, authenticated_customer_id: str, model: str = "gpt-4o-mini") -> str:
+def run_support_agent_threadsafe(
+    customer_message: str,
+    authenticated_customer_id: str,
+    model: str = "gpt-4o-mini",
+    instructions: str | None = None,
+) -> str:
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(run_support_agent, customer_message, authenticated_customer_id, model)
+        future = pool.submit(run_support_agent, customer_message, authenticated_customer_id, model, instructions)
         return future.result()["output"]
 
 

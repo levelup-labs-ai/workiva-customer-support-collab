@@ -1,51 +1,49 @@
-import json
-import re
-
 from arize.experiments.evaluators.base import EvaluationResult, Evaluator
 
-IDEAL_BOUNDARY_RESPONSE = (
-    "Hi Elena, I am sorry to be the bearer of difficult news - your order falls just "
-    "outside our 30-day return window by 5 days, so I am unable to approve the return "
-    "directly. I completely understand the frustration, especially as the item is still "
-    "sealed. I can escalate this to a supervisor who has the ability to make exceptions "
-    "in cases like this - would you like me to do that?"
-)
+LABEL_SCORE = {"Good": 1.0, "Acceptable": 0.5, "Poor": 0.0}
 
 TONE_JUDGE = (
     "You evaluate customer support responses for tone.\n\n"
-    "GOOD: Warm, empathetic, professional.\n"
+    "GOOD: Warm, empathetic, and professional.\n"
     "ACCEPTABLE: Polite but generic or slightly flat.\n"
-    "POOR: Cold, robotic, or dismissive.\n\n"
+    "POOR: Cold, robotic, dismissive, or argumentative.\n\n"
     "Respond with exactly one word: Good, Acceptable, or Poor."
 )
 
-RESOLUTION_JUDGE = (
-    "Compare a support response to an ideal response.\n\n"
-    "Ideal:\n{ideal}\n\nActual:\n{actual}\n\n"
-    "GOOD: Core issue addressed accurately and completely. "
-    "If the case clearly supports an immediate resolution, the response resolves it instead of deferring.\n"
-    "ACCEPTABLE: Mostly correct, but missing key specifics or stopping at next steps when it could have resolved.\n"
-    "POOR: Not addressed, generic, asks for information that should already be available, or promises action without resolving.\n\n"
+OUTCOME_JUDGE = (
+    "Compare a support response to the ideal response for the case.\n\n"
+    "Customer message:\n{user_input}\n\n"
+    "Ideal response:\n{ideal}\n\n"
+    "Actual response:\n{actual}\n\n"
+    "GOOD: The actual response reaches the same core outcome as the ideal response.\n"
+    "ACCEPTABLE: Mostly correct but missing important specifics or completeness.\n"
+    "POOR: Wrong decision, misses the main point, or fails to address the user's need.\n\n"
     "Respond with exactly one word: Good, Acceptable, or Poor."
 )
 
-LABEL_SCORE = {"Good": 1.0, "Acceptable": 0.5, "Poor": 0.0, "PASS": 1.0, "FAIL": 0.0}
+WORKFLOW_FIT_JUDGE = (
+    "Evaluate whether the response matches the expected workflow behavior for this capability stage.\n\n"
+    "Benchmark slice: {benchmark_slice}\n"
+    "Expected workflow behavior: {expected_behavior}\n"
+    "Customer message:\n{user_input}\n\n"
+    "Response:\n{actual}\n\n"
+    "Use this rubric:\n"
+    "- prompt / ask_one_targeted_followup: good responses acknowledge limited information and ask one focused follow-up instead of inventing facts.\n"
+    "- context / answer_with_specific_context_no_action_claim: good responses use the support snapshot to answer specifically, but do not pretend a backend action already happened.\n"
+    "- tools / confirm_backend_action_taken: good responses confirm a concrete backend action or result when enough information exists; merely suggesting next steps is weaker.\n\n"
+    "GOOD: Matches the expected workflow behavior for the slice.\n"
+    "ACCEPTABLE: Partially matches but is missing discipline or specificity.\n"
+    "POOR: Behaves like the wrong capability stage.\n\n"
+    "Respond with exactly one word: Good, Acceptable, or Poor."
+)
 
 
-def check_source_grounding(output: str, source_data: dict) -> tuple[bool, str]:
-    source_str = json.dumps(source_data)
-    ai_amounts = set(re.findall(r"\$[\d,]+\.?\d*", output))
-    src_numbers = set(re.findall(r"[\d]+\.?\d*", source_str))
-    hallucinated = [amount for amount in ai_amounts if re.sub(r"[\$,]", "", amount) not in src_numbers]
-    return (not hallucinated, "OK" if not hallucinated else f"Invented: {hallucinated}")
-
-
-def judge_tone(client, output: str) -> str:
+def _one_word_judge(client, system_prompt: str, user_prompt: str) -> str:
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": TONE_JUDGE},
-            {"role": "user", "content": f"Response:\n{output}"},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
         ],
         temperature=0,
         max_tokens=5,
@@ -53,53 +51,61 @@ def judge_tone(client, output: str) -> str:
     return response.choices[0].message.content.strip().capitalize()
 
 
-def judge_resolution(client, output: str, ideal: str = IDEAL_BOUNDARY_RESPONSE) -> str:
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": RESOLUTION_JUDGE.format(ideal=ideal, actual=output)}],
-        temperature=0,
-        max_tokens=5,
+def judge_tone(client, output: str) -> str:
+    return _one_word_judge(client, TONE_JUDGE, f"Response:\n{output}")
+
+
+def judge_outcome(client, output: str, case: dict) -> str:
+    return _one_word_judge(
+        client,
+        "You are a strict evaluator of support response correctness.",
+        OUTCOME_JUDGE.format(
+            user_input=case.get("user_input", ""),
+            ideal=case.get("expected_output", ""),
+            actual=output,
+        ),
     )
-    return response.choices[0].message.content.strip().capitalize()
 
 
-def composite_score(grounding_ok: bool, tone: str, resolved: str) -> float:
-    return round((1.0 if grounding_ok else 0.0) + LABEL_SCORE.get(tone, 0.0) + LABEL_SCORE.get(resolved, 0.0), 1)
+def judge_workflow_fit(client, output: str, case: dict) -> str:
+    return _one_word_judge(
+        client,
+        "You are a strict evaluator of whether a response matches the intended system capability.",
+        WORKFLOW_FIT_JUDGE.format(
+            benchmark_slice=case.get("benchmark_slice", "unknown"),
+            expected_behavior=case.get("expected_behavior", "unknown"),
+            user_input=case.get("user_input", ""),
+            actual=output,
+        ),
+    )
 
 
-def score_single_response(client, output: str, source_data: dict, ideal: str = IDEAL_BOUNDARY_RESPONSE) -> dict:
-    grounding_ok, grounding_detail = check_source_grounding(output, source_data)
+def composite_score(tone: str, outcome: str, workflow_fit: str) -> float:
+    return round(
+        LABEL_SCORE.get(tone, 0.0)
+        + LABEL_SCORE.get(outcome, 0.0)
+        + LABEL_SCORE.get(workflow_fit, 0.0),
+        1,
+    )
+
+
+def score_single_response(client, output: str, case: dict) -> dict:
     tone = judge_tone(client, output)
-    resolved = judge_resolution(client, output, ideal=ideal)
+    outcome = judge_outcome(client, output, case)
+    workflow_fit = judge_workflow_fit(client, output, case)
     return {
-        "grounding_ok": grounding_ok,
-        "grounding_detail": grounding_detail,
         "tone": tone,
-        "resolved": resolved,
-        "total": composite_score(grounding_ok, tone, resolved),
+        "correct_outcome": outcome,
+        "workflow_fit": workflow_fit,
+        "total": composite_score(tone, outcome, workflow_fit),
     }
 
 
-def compare_scores(client, outputs: dict, source_data: dict, ideal: str = IDEAL_BOUNDARY_RESPONSE) -> list[dict]:
+def compare_scores(client, outputs: dict, case: dict) -> list[dict]:
     rows = []
     for label, output in outputs.items():
-        score = score_single_response(client, output, source_data, ideal=ideal)
-        rows.append({"variant": label, **score})
+        rows.append({"variant": label, **score_single_response(client, output, case)})
     return rows
-
-
-class SourceGroundingEvaluator(Evaluator):
-    def __init__(self, dataset_by_id: dict):
-        self.dataset_by_id = dataset_by_id
-
-    def evaluate(self, dataset_row, input, output, **kwargs) -> EvaluationResult:
-        case = self.dataset_by_id.get(dataset_row.get("scenario_id"), {})
-        ok, detail = check_source_grounding(output or "", case.get("source_data", {}))
-        return EvaluationResult(
-            score=1.0 if ok else 0.0,
-            label="PASS" if ok else "FAIL",
-            explanation=detail,
-        )
 
 
 class ToneQualityEvaluator(Evaluator):
@@ -111,21 +117,31 @@ class ToneQualityEvaluator(Evaluator):
         return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation="AI judge")
 
 
-class IssueResolvedEvaluator(Evaluator):
+class CorrectOutcomeEvaluator(Evaluator):
     def __init__(self, client, dataset_by_id: dict):
         self.client = client
         self.dataset_by_id = dataset_by_id
 
     def evaluate(self, dataset_row, input, output, **kwargs) -> EvaluationResult:
         case = self.dataset_by_id.get(dataset_row.get("scenario_id"), {})
-        ideal = case.get("expected_output", "")
-        label = judge_resolution(self.client, output or "", ideal=ideal)
+        label = judge_outcome(self.client, output or "", case)
+        return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation="AI judge")
+
+
+class WorkflowFitEvaluator(Evaluator):
+    def __init__(self, client, dataset_by_id: dict):
+        self.client = client
+        self.dataset_by_id = dataset_by_id
+
+    def evaluate(self, dataset_row, input, output, **kwargs) -> EvaluationResult:
+        case = self.dataset_by_id.get(dataset_row.get("scenario_id"), {})
+        label = judge_workflow_fit(self.client, output or "", case)
         return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation="AI judge")
 
 
 def build_evaluators(client, dataset_by_id: dict) -> list[Evaluator]:
     return [
-        SourceGroundingEvaluator(dataset_by_id),
         ToneQualityEvaluator(client),
-        IssueResolvedEvaluator(client, dataset_by_id),
+        CorrectOutcomeEvaluator(client, dataset_by_id),
+        WorkflowFitEvaluator(client, dataset_by_id),
     ]
