@@ -4,7 +4,7 @@ import re
 from arize.experiments.evaluators.base import EvaluationResult, Evaluator
 
 LABEL_SCORE = {"Good": 1.0, "Acceptable": 0.5, "Poor": 0.0}
-VARIANT_DISPLAY = {"v1": "v1", "v2": "v2", "v3": "v3"}
+VARIANT_DISPLAY = {"router": "router", "v1": "v1", "v2": "v2", "v3": "v3"}
 
 TONE_JUDGE = (
     "You evaluate customer support responses for tone.\n\n"
@@ -79,6 +79,18 @@ def pack_response_payload(response_text: str, tool_calls: list | None = None, ac
             "action_calls": action_calls or [],
         }
     )
+
+
+def normalize_text_label(value: str | None) -> str:
+    return re.sub(r"\s+", " ", (value or "").strip().lower())
+
+
+def exact_match_result(actual: str | None, expected: str | None) -> tuple[str, str]:
+    normalized_actual = normalize_text_label(actual)
+    normalized_expected = normalize_text_label(expected)
+    if normalized_actual == normalized_expected:
+        return "Good", f"Exact match on normalized label `{expected}`."
+    return "Poor", f"Predicted `{actual or ''}` but expected `{expected or ''}`."
 
 
 def _variant_expectation(case: dict, variant_name: str) -> str:
@@ -215,6 +227,18 @@ def composite_score(scores: list[float]) -> float:
     return round(sum(scores), 1)
 
 
+def score_routing_response(output: str, expected_category: str) -> dict:
+    payload = _parse_task_output(output)
+    label, reasoning = exact_match_result(payload["response_text"], expected_category)
+    return {
+        "exact_match": label,
+        "exact_match_reasoning": reasoning,
+        "predicted_category": payload["response_text"],
+        "expected_category": expected_category,
+        "total": LABEL_SCORE.get(label, 0.0),
+    }
+
+
 def score_single_response(client, output: str, case: dict, variant_name: str, variant_behavior: str) -> dict:
     tone_label, tone_reasoning = judge_tone(client, output)
     workflow_label, workflow_reasoning = judge_workflow_fit(
@@ -272,6 +296,19 @@ def compare_scores(client, outputs: dict, case: dict, variant_behaviors: dict | 
     return rows
 
 
+class ExactMatchEvaluator(Evaluator):
+    def __init__(self, expected_field: str, output_field: str = "response_text"):
+        self.expected_field = expected_field
+        self.output_field = output_field
+
+    def evaluate(self, dataset_row, input, output, **kwargs) -> EvaluationResult:
+        payload = _parse_task_output(output or "")
+        actual = payload.get(self.output_field, "")
+        expected = dataset_row.get(self.expected_field, "")
+        label, reasoning = exact_match_result(actual, expected)
+        return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation=reasoning)
+
+
 class ToneQualityEvaluator(Evaluator):
     def __init__(self, client):
         self.client = client
@@ -325,6 +362,9 @@ class ActionExecutionEvaluator(Evaluator):
 
 
 def build_evaluators(client, dataset_by_id: dict, variant_name: str, variant_behavior: str) -> list[Evaluator]:
+    if variant_name == "router":
+        return [ExactMatchEvaluator(expected_field="category")]
+
     evaluators: list[Evaluator] = [
         ToneQualityEvaluator(client),
         WorkflowFitEvaluator(client, dataset_by_id, variant_name=variant_name, variant_behavior=variant_behavior),

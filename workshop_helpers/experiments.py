@@ -10,6 +10,7 @@ from workshop_helpers.metrics import build_evaluators, pack_response_payload
 DATASET_NAME = "cs-support-workshop-benchmark"
 
 VARIANT_BEHAVIORS = {
+    "router": "Routing agent. It should read the customer message and return exactly one supported category label.",
     "v1": "Prompt-only assistant with no backend access. It should avoid bluffing, avoid invented actions, and ask one or more focused follow-ups when information is missing.",
     "v2": "Static-context assistant. It should use the provided support snapshot specifically, but it must not pretend a backend action already happened.",
     "v3": "Tool-using agent. When enough information exists, it should verify with tools and complete the backend action before replying.",
@@ -81,8 +82,28 @@ def ensure_arize_dataset(arize_api_key: str, arize_space_id: str, dataset: list[
     }
 
 
-def build_tasks(client, dataset: list[dict], prompt_v1: str, prompt_v2: str, prompt_v3: str) -> dict:
+def build_tasks(
+    client,
+    dataset: list[dict],
+    prompt_router: str,
+    prompt_v1: str,
+    prompt_v2: str,
+    prompt_v3: str,
+) -> dict:
     cases_by_id = dataset_index(dataset)
+    categories = sorted({case["category"] for case in dataset})
+
+    def task_router(row: dict) -> str:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": prompt_router.format(categories=", ".join(categories))},
+                {"role": "user", "content": row["user_input"]},
+            ],
+            temperature=0,
+            max_tokens=20,
+        )
+        return pack_response_payload(response.choices[0].message.content.strip())
 
     def task_v1(row: dict) -> str:
         response = client.chat.completions.create(
@@ -128,7 +149,7 @@ def build_tasks(client, dataset: list[dict], prompt_v1: str, prompt_v2: str, pro
             action_calls=result.get("action_calls", []),
         )
 
-    return {"task_v1": task_v1, "task_v2": task_v2, "task_v3": task_v3}
+    return {"task_router": task_router, "task_v1": task_v1, "task_v2": task_v2, "task_v3": task_v3}
 
 
 def run_experiment(arize_client, dataset_id: str, name_prefix: str, task, evaluators, concurrency: int = 3):
@@ -168,6 +189,7 @@ def prepare_experiment_bundle(
     arize_api_key: str,
     arize_space_id: str,
     dataset: list[dict],
+    prompt_router: str,
     prompt_v1: str,
     prompt_v2: str,
     prompt_v3: str,
@@ -181,7 +203,7 @@ def prepare_experiment_bundle(
         **arize_bundle,
         "dataset_lookup": dataset_lookup,
         "selected_dataset": selected_dataset,
-        "tasks": build_tasks(client, selected_dataset, prompt_v1, prompt_v2, prompt_v3),
+        "tasks": build_tasks(client, selected_dataset, prompt_router, prompt_v1, prompt_v2, prompt_v3),
         "build_evaluators": lambda variant_name: build_evaluators(
             client,
             dataset_lookup,
