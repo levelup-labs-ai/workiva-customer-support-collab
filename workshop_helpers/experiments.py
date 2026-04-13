@@ -171,7 +171,7 @@ def build_tasks(
 
     def task_router(row: dict) -> str:
         route = run_router_structured(client, row["user_input"], prompt_router, categories)
-        return pack_response_payload(route["category"], metadata=route)
+        return route["category"]
 
     def task_v2_routed(row: dict) -> str:
         case = cases_by_id.get(row["scenario_id"])

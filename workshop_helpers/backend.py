@@ -1,16 +1,85 @@
 import asyncio
 import concurrent.futures
 import json
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import TypedDict, cast
 
 from agents import Agent, Runner, function_tool
 
+from workshop_helpers.data import BillingCase, BillingSourceData, EscalationCase, EscalationSourceData, SupportCase
 from workshop_helpers.setup import suspend_openai_tracing_for_agents
 
 _BILLING_REFERENCE_PATH = Path(__file__).with_name("billing_reference.json")
 
-BILLING_ACCOUNT_DB: dict[str, dict] = {}
-INVOICE_DB: dict[str, dict] = {}
+
+@dataclass(frozen=True)
+class BillingAccountRecord:
+    account_name: str
+    plan_name: str
+    billing_status: str
+    credit_eligible: bool
+    notes: str
+
+    @classmethod
+    def from_billing_source(cls, source_data: BillingSourceData) -> "BillingAccountRecord":
+        return cls(
+            account_name=source_data["account_name"],
+            plan_name=source_data["plan_name"],
+            billing_status=source_data["billing_status"],
+            credit_eligible=source_data["credit_eligible"],
+            notes=source_data["notes"],
+        )
+
+    @classmethod
+    def from_escalation_source(cls, source_data: EscalationSourceData) -> "BillingAccountRecord":
+        # Escalation cases seed the account lookup table even when there is no invoice metadata.
+        return cls(
+            account_name=source_data["account_name"],
+            plan_name="Unknown",
+            billing_status="active",
+            credit_eligible=False,
+            notes=source_data["notes"],
+        )
+
+    def to_tool_payload(self, account_id: str) -> dict:
+        return {"account_id": account_id, **asdict(self)}
+
+
+@dataclass(frozen=True)
+class InvoiceRecord:
+    account_id: str
+    plan_name: str
+    last_charge_amount: float
+    duplicate_charge: bool
+    credit_eligible: bool
+    billing_status: str
+    notes: str
+
+    @classmethod
+    def from_billing_source(cls, source_data: BillingSourceData) -> "InvoiceRecord":
+        return cls(
+            account_id=source_data["customer_id"],
+            plan_name=source_data["plan_name"],
+            last_charge_amount=source_data["last_charge_amount"],
+            duplicate_charge=source_data["duplicate_charge"],
+            credit_eligible=source_data["credit_eligible"],
+            billing_status=source_data["billing_status"],
+            notes=source_data["notes"],
+        )
+
+    def to_tool_payload(self, invoice_id: str) -> dict:
+        return {"invoice_id": invoice_id, **asdict(self)}
+
+
+class BackendSnapshot(TypedDict):
+    billing_account_count: int
+    invoice_count: int
+    billing_reference_topics: int
+
+
+BILLING_ACCOUNT_DB: dict[str, BillingAccountRecord] = {}
+INVOICE_DB: dict[str, InvoiceRecord] = {}
 BILLING_REFERENCE_DB: dict[str, dict] = (
     json.loads(_BILLING_REFERENCE_PATH.read_text()) if _BILLING_REFERENCE_PATH.exists() else {}
 )
@@ -30,7 +99,7 @@ ACTION_RESULTS = {
 ACTION_TOOL_NAMES = list(ACTION_RESULTS.keys())
 
 
-def snapshot_backend() -> dict:
+def snapshot_backend() -> BackendSnapshot:
     return {
         "billing_account_count": len(BILLING_ACCOUNT_DB),
         "invoice_count": len(INVOICE_DB),
@@ -44,7 +113,7 @@ def get_billing_account(account_id: str) -> dict:
     account = BILLING_ACCOUNT_DB.get(account_id)
     if not account:
         return {"error": f"Billing account not found: {account_id}"}
-    return {"account_id": account_id, **account}
+    return account.to_tool_payload(account_id)
 
 
 @function_tool
@@ -53,7 +122,7 @@ def get_invoice_details(invoice_id: str) -> dict:
     invoice = INVOICE_DB.get(invoice_id)
     if not invoice:
         return {"error": f"Invoice not found: {invoice_id}"}
-    return {"invoice_id": invoice_id, **invoice}
+    return invoice.to_tool_payload(invoice_id)
 
 
 @function_tool
@@ -159,7 +228,18 @@ def run_billing_agent_threadsafe(
         return future.result()
 
 
-def hydrate_backend_from_dataset(dataset: list[dict]) -> dict:
+def _seed_account_record(case: BillingCase | EscalationCase) -> BillingAccountRecord:
+    if case["category"] == "billing":
+        return BillingAccountRecord.from_billing_source(case["source_data"])
+    return BillingAccountRecord.from_escalation_source(case["source_data"])
+
+
+def _seed_invoice_record(case: BillingCase) -> tuple[str, InvoiceRecord]:
+    source_data = case["source_data"]
+    return source_data["invoice_id"], InvoiceRecord.from_billing_source(source_data)
+
+
+def hydrate_backend_from_dataset(dataset: list[SupportCase]) -> BackendSnapshot:
     BILLING_ACCOUNT_DB.clear()
     INVOICE_DB.clear()
 
@@ -167,34 +247,14 @@ def hydrate_backend_from_dataset(dataset: list[dict]) -> dict:
         if case["category"] not in {"billing", "escalation"}:
             continue
 
-        source_data = case["source_data"]
-        account_id = source_data.get("customer_id")
-        invoice_id = source_data.get("invoice_id")
+        hydration_case = cast(BillingCase | EscalationCase, case)
+        account_id = hydration_case["source_data"]["customer_id"]
+        BILLING_ACCOUNT_DB.setdefault(account_id, _seed_account_record(hydration_case))
 
-        if account_id:
-            BILLING_ACCOUNT_DB.setdefault(
-                account_id,
-                {
-                    "account_name": source_data.get("account_name", account_id),
-                    "plan_name": source_data.get("plan_name", "Unknown"),
-                    "billing_status": source_data.get("billing_status", "active"),
-                    "credit_eligible": source_data.get("credit_eligible", False),
-                    "notes": source_data.get("notes", ""),
-                },
-            )
+        if hydration_case["category"] != "billing":
+            continue
 
-        if invoice_id:
-            INVOICE_DB.setdefault(
-                invoice_id,
-                {
-                    "account_id": account_id,
-                    "plan_name": source_data.get("plan_name", "Unknown"),
-                    "last_charge_amount": source_data.get("last_charge_amount"),
-                    "duplicate_charge": source_data.get("duplicate_charge", False),
-                    "credit_eligible": source_data.get("credit_eligible", False),
-                    "billing_status": source_data.get("billing_status", "active"),
-                    "notes": source_data.get("notes", ""),
-                },
-            )
+        invoice_id, invoice_record = _seed_invoice_record(hydration_case)
+        INVOICE_DB.setdefault(invoice_id, invoice_record)
 
     return snapshot_backend()
