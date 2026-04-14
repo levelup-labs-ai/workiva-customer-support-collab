@@ -38,19 +38,19 @@ class BaseCase(TypedDict):
     missing_info_required: bool
     workflow_expectation: str
     action_expected: bool
-    action_type: str
+    action_type: str | None
 
 
 class BillingCase(BaseCase):
     category: Literal["billing"]
     source_data: BillingSourceData
-    action_type: str
+    action_type: str | None
 
 
 class EscalationCase(BaseCase):
     category: Literal["escalation"]
     source_data: EscalationSourceData
-    action_type: str
+    action_type: str | None
 
 
 SupportCase = BaseCase

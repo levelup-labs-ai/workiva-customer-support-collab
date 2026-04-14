@@ -1,26 +1,26 @@
 {
   "duplicate_charge": {
     "policy": "If the same invoice or billing period was charged twice due to a system error, support may apply a credit for the duplicate amount.",
-    "recommended_action": "apply_billing_credit"
+    "recommended_next_step": "draft_credit_confirmation"
   },
   "proration": {
     "policy": "Mid-cycle upgrades create prorated line items. If the calculation matches the plan change timing, explain the charge instead of applying a credit.",
-    "recommended_action": "explain_charge"
+    "recommended_next_step": "explain_charge"
   },
   "late_fee_waiver": {
     "policy": "A one-time courtesy late-fee waiver may be granted when the account has no recent waiver history and the account is otherwise healthy.",
-    "recommended_action": "apply_billing_credit"
+    "recommended_next_step": "draft_credit_confirmation"
   },
   "service_credit": {
     "policy": "Approved outage or SLA incidents may qualify for a service credit when the account is on the impacted plan or workspace tier.",
-    "recommended_action": "apply_billing_credit"
+    "recommended_next_step": "draft_credit_confirmation"
   },
   "invoice_metadata": {
     "policy": "Changes to PO numbers, remit-to details, or invoice metadata require human billing operations review.",
-    "recommended_action": "escalate_to_human"
+    "recommended_next_step": "draft_human_review_offer"
   },
   "contract_mismatch": {
     "policy": "If an invoice appears inconsistent with signed commercial terms, escalate to a human specialist for contract review.",
-    "recommended_action": "escalate_to_human"
+    "recommended_next_step": "draft_human_review_offer"
   }
 }

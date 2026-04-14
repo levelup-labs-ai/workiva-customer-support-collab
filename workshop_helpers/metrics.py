@@ -83,64 +83,6 @@ def judge_brand_voice(client, output: str, judge_prompts: dict) -> tuple[str, st
     return _judge_with_reasoning(client, judge_prompts["brand_voice"], f"Response:\n{payload['response_text']}")
 
 
-def judge_helpfulness(client, output: str, case: dict, judge_prompts: dict) -> tuple[str, str]:
-    payload = _parse_task_output(output)
-    return _judge_with_reasoning(
-        client,
-        judge_prompts["helpfulness_system"],
-        judge_prompts["helpfulness"].format(
-            user_input=case.get("user_input", ""),
-            ideal=case.get("expected_output", ""),
-            actual=payload["response_text"],
-        ),
-    )
-
-
-def _did_escalate(case: dict, output: str) -> tuple[bool, str]:
-    payload = _parse_task_output(output)
-    action_calls = payload["action_calls"]
-    routed_category = payload["metadata"].get("route_category", "")
-    expected_action = case.get("action_type")
-
-    for call in action_calls:
-        call_name = call.get("name") if isinstance(call, dict) else str(call)
-        if call_name == "escalate_to_human":
-            arguments = call.get("arguments", "") if isinstance(call, dict) else ""
-            return True, f"Recorded `escalate_to_human` action call with arguments: {arguments}"
-
-    if routed_category == "escalation" and expected_action == "escalate_to_human":
-        return True, "Route category was `escalation` for a case that requires human handoff."
-
-    return False, "No recorded `escalate_to_human` action call was found."
-
-
-def escalation_decision_result(case: dict, output: str) -> tuple[str, str]:
-    expected = case.get("action_type") == "escalate_to_human"
-    predicted, evidence = _did_escalate(case, output)
-    if expected == predicted:
-        return "Good", f"Escalation decision matched expectation. {evidence}"
-    return "Poor", f"Expected escalate={expected}, predicted escalate={predicted}. {evidence}"
-
-
-def expected_action_taken_result(case: dict, output: str) -> tuple[str, str]:
-    if not case.get("action_expected"):
-        return "Good", "No action was expected for this case."
-
-    expected_action = case.get("action_type")
-    payload = _parse_task_output(output)
-    action_calls = payload["action_calls"]
-    action_names = [
-        call.get("name") if isinstance(call, dict) else str(call)
-        for call in action_calls
-    ]
-
-    if expected_action in action_names:
-        return "Good", f"Expected action `{expected_action}` was recorded."
-    if action_names:
-        return "Poor", f"Expected action `{expected_action}`, but recorded actions were: {', '.join(action_names)}."
-    return "Poor", f"Expected action `{expected_action}`, but no action calls were recorded."
-
-
 def score_routing_response(output: str, expected_category: str) -> dict:
     payload = _parse_task_output(output)
     label, reasoning = exact_match_result(payload["response_text"], expected_category)
@@ -153,7 +95,7 @@ def score_routing_response(output: str, expected_category: str) -> dict:
     }
 
 
-class RoutingAccuracyEvaluator(Evaluator):
+class ExactMatchEvaluator(Evaluator):
     def __init__(self, expected_field: str, output_field: str = "response_text"):
         self.expected_field = expected_field
         self.output_field = output_field
@@ -166,6 +108,10 @@ class RoutingAccuracyEvaluator(Evaluator):
         return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation=reasoning)
 
 
+class RoutingAccuracyEvaluator(ExactMatchEvaluator):
+    pass
+
+
 class BrandVoiceEvaluator(Evaluator):
     def __init__(self, client, judge_prompts: dict):
         self.client = client
@@ -173,38 +119,6 @@ class BrandVoiceEvaluator(Evaluator):
 
     def evaluate(self, dataset_row, input, output, **kwargs) -> EvaluationResult:
         label, reasoning = judge_brand_voice(self.client, output or "", judge_prompts=self.judge_prompts)
-        return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation=reasoning)
-
-
-class HelpfulnessEvaluator(Evaluator):
-    def __init__(self, client, dataset_by_id: dict, judge_prompts: dict):
-        self.client = client
-        self.dataset_by_id = dataset_by_id
-        self.judge_prompts = judge_prompts
-
-    def evaluate(self, dataset_row, input, output, **kwargs) -> EvaluationResult:
-        case = self.dataset_by_id.get(dataset_row.get("scenario_id"), {})
-        label, reasoning = judge_helpfulness(self.client, output or "", case, judge_prompts=self.judge_prompts)
-        return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation=reasoning)
-
-
-class EscalationDecisionEvaluator(Evaluator):
-    def __init__(self, dataset_by_id: dict):
-        self.dataset_by_id = dataset_by_id
-
-    def evaluate(self, dataset_row, input, output, **kwargs) -> EvaluationResult:
-        case = self.dataset_by_id.get(dataset_row.get("scenario_id"), {})
-        label, reasoning = escalation_decision_result(case, output or "")
-        return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation=reasoning)
-
-
-class ExpectedActionTakenEvaluator(Evaluator):
-    def __init__(self, dataset_by_id: dict):
-        self.dataset_by_id = dataset_by_id
-
-    def evaluate(self, dataset_row, input, output, **kwargs) -> EvaluationResult:
-        case = self.dataset_by_id.get(dataset_row.get("scenario_id"), {})
-        label, reasoning = expected_action_taken_result(case, output or "")
         return EvaluationResult(score=LABEL_SCORE.get(label, 0.0), label=label, explanation=reasoning)
 
 
@@ -218,11 +132,4 @@ def build_evaluators(
     if variant_name == "router":
         return [RoutingAccuracyEvaluator(expected_field="category")]
 
-    evaluators: list[Evaluator] = [
-        BrandVoiceEvaluator(client, judge_prompts=judge_prompts),
-        HelpfulnessEvaluator(client, dataset_by_id, judge_prompts=judge_prompts),
-    ]
-    if variant_name == "v2_routed":
-        evaluators.append(EscalationDecisionEvaluator(dataset_by_id))
-        evaluators.append(ExpectedActionTakenEvaluator(dataset_by_id))
-    return evaluators
+    return [BrandVoiceEvaluator(client, judge_prompts=judge_prompts)]

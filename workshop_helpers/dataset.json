@@ -23,10 +23,10 @@
   {
     "scenario_id": "CP_002",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "I need access to the budget workbook before today's forecast review. What's the fastest way?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "I need access to the budget workbook before today's forecast review approval meeting. What's the fastest permission path?",
     "source_data": {
       "resource_name": "FY26 budget workbook",
       "resource_type": "spreadsheet",
@@ -44,10 +44,10 @@
   {
     "scenario_id": "CP_003",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Who can grant me access to the final earnings narrative doc?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "The earnings narrative is in final review, but my issue is that I cannot open it. Who can grant me access?",
     "source_data": {
       "resource_name": "Final earnings narrative",
       "resource_type": "document",
@@ -65,10 +65,10 @@
   {
     "scenario_id": "CP_004",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "I already requested access to the audit tracker yesterday but nothing happened. What should I do next?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "My access request is stuck in the approval workflow from yesterday, but I only need permission to the audit tracker. What should I do next?",
     "source_data": {
       "resource_name": "Audit tracker",
       "resource_type": "spreadsheet",
@@ -86,10 +86,10 @@
   {
     "scenario_id": "CP_005",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Can contractors get access to the monthly close checklist?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "A contractor needs the monthly close checklist for a workflow review. Are contractors allowed to get access?",
     "source_data": {
       "resource_name": "Monthly close checklist",
       "resource_type": "document",
@@ -128,10 +128,10 @@
   {
     "scenario_id": "CP_007",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Why was my request for access to the launch calendar denied?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "The launch calendar request was denied while our review workflow is blocked. Why was my access request denied?",
     "source_data": {
       "resource_name": "Launch calendar",
       "resource_type": "spreadsheet",
@@ -149,10 +149,10 @@
   {
     "scenario_id": "CP_008",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Do I need admin approval to open the investor cap table?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "Legal review is waiting on numbers in the investor cap table, but I cannot open it. Do I need admin approval?",
     "source_data": {
       "resource_name": "Investor cap table",
       "resource_type": "spreadsheet",
@@ -191,10 +191,10 @@
   {
     "scenario_id": "CP_010",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Can someone just send me a direct link so I can bypass the access request flow?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "We have a deadline today. Can someone send a direct link so I can bypass the access request flow?",
     "source_data": {
       "resource_name": "Vendor risk register",
       "resource_type": "spreadsheet",
@@ -212,10 +212,10 @@
   {
     "scenario_id": "CP_011",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "I need access to three planning docs for tomorrow's meeting. Can support batch this for me?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "I need access to three planning docs before an exec review tomorrow. Can support batch the permission requests for me?",
     "source_data": {
       "resource_name": "Planning docs bundle",
       "resource_type": "documents",
@@ -254,10 +254,10 @@
   {
     "scenario_id": "CP_013",
     "category": "permissions",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "My manager approved access verbally. How do I get the permission updated in the product?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "My manager approved access verbally during the review meeting. How do I get the permission updated in the product?",
     "source_data": {
       "resource_name": "Headcount tracker",
       "resource_type": "spreadsheet",
@@ -296,10 +296,10 @@
   {
     "scenario_id": "CR_001",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "What is blocking this file from moving forward? I already got one approval.",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "I can access the file and one approval is done, but it still will not move forward. What is blocking the workflow?",
     "source_data": {
       "file_name": "Q2 disclosure memo",
       "current_stage": "legal review",
@@ -321,10 +321,10 @@
   {
     "scenario_id": "CR_002",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Why can't I submit the deck for final approval yet?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "I have edit access to the deck, so why can't I submit it for final approval yet?",
     "source_data": {
       "file_name": "Board strategy deck",
       "current_stage": "manager review",
@@ -346,10 +346,10 @@
   {
     "scenario_id": "CR_003",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Who still needs to review the policy update before publication?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "Before we publish the policy update, who still needs to review it? This is not an access request.",
     "source_data": {
       "file_name": "Policy update",
       "current_stage": "cross-functional review",
@@ -395,10 +395,10 @@
   {
     "scenario_id": "CR_005",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Can I skip the finance approver if the content changes were only wording tweaks?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "I own the file and have admin rights. Can I skip the finance approver if the content changes were only wording tweaks?",
     "source_data": {
       "file_name": "Guidance memo",
       "current_stage": "finance review",
@@ -420,10 +420,10 @@
   {
     "scenario_id": "CR_006",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "How do I know whether the file is waiting on me or someone else?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "I have editor permission, but the workflow is stuck. How do I know whether the file is waiting on me or someone else?",
     "source_data": {
       "file_name": "Investor FAQ",
       "current_stage": "IR review",
@@ -472,10 +472,10 @@
   {
     "scenario_id": "CR_008",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "The workflow says 'stale reviewer'. How do I unblock that?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "The reviewer says they may have lost access, and the workflow says stale reviewer. How do I unblock that?",
     "source_data": {
       "file_name": "Sales compensation plan",
       "current_stage": "people review",
@@ -547,10 +547,10 @@
   {
     "scenario_id": "CR_011",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Why did the workflow roll the document back to drafting?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "I still have access, but the workflow rolled the document back to drafting. Why did that happen?",
     "source_data": {
       "file_name": "Pricing change note",
       "current_stage": "drafting",
@@ -568,10 +568,10 @@
   {
     "scenario_id": "CR_012",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Can I see whether the CEO approval is really required here?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "The CEO approval looks like an access problem to me. Can I see whether that approval is really required here?",
     "source_data": {
       "file_name": "Board briefing appendix",
       "current_stage": "executive review",
@@ -594,10 +594,10 @@
   {
     "scenario_id": "CR_013",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "The status just says 'workflow exception'. What should I check first?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "The status says workflow exception on a file with billing policy language. What should I check first?",
     "source_data": {
       "file_name": "Quarterly risk update",
       "current_stage": "workflow exception",
@@ -619,10 +619,10 @@
   {
     "scenario_id": "CR_014",
     "category": "review_workflow",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "I already have all the approvals. Why isn't publish enabled?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "I have permission to edit and all approvals are complete. Why isn't publish enabled?",
     "source_data": {
       "file_name": "External announcement",
       "current_stage": "final validation",
@@ -647,7 +647,7 @@
     "difficulty": "standard",
     "is_edge_case": false,
     "edge_case_type": null,
-    "user_input": "I was billed $49 twice this month. Can you fix that?",
+    "user_input": "I was billed $49 twice this month. What should the reply say?",
     "source_data": {
       "customer_id": "ACCT_1001",
       "account_name": "Northwind Capital",
@@ -659,19 +659,19 @@
       "billing_status": "active",
       "notes": "Duplicate invoice generated after retry."
     },
-    "expected_output": "I checked the account and there is a duplicate charge for the same billing period. I have applied a billing credit for the duplicate amount and you should see it reflected on the account shortly.",
+    "expected_output": "I checked the account and there is a duplicate charge for the same billing period. The draft reply should explain that the account appears eligible for a billing credit and ask the user to confirm before support applies it.",
     "missing_info_required": false,
-    "workflow_expectation": "perform_action",
-    "action_expected": true,
-    "action_type": "apply_billing_credit"
+    "workflow_expectation": "answer_or_offer_next_step",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CB_002",
     "category": "billing",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Why is my invoice higher than usual this quarter?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "The invoice is higher than usual right before our forecast review. Can you explain the billing change?",
     "source_data": {
       "customer_id": "ACCT_1002",
       "account_name": "Harbor Analytics",
@@ -695,7 +695,7 @@
     "difficulty": "standard",
     "is_edge_case": false,
     "edge_case_type": null,
-    "user_input": "We were charged after cancelling. Please reverse it.",
+    "user_input": "We were charged after cancelling. Can you explain what happened before we ask for a reversal?",
     "source_data": {
       "customer_id": "ACCT_1003",
       "account_name": "Stonebridge Advisors",
@@ -707,19 +707,19 @@
       "billing_status": "active",
       "notes": "Cancellation submitted after renewal executed."
     },
-    "expected_output": "I verified that the cancellation was recorded after the renewal cutoff, so the charge was valid for the new period. Because this is a policy exception request, I escalated it to a human billing specialist for review.",
+    "expected_output": "I verified that the cancellation was recorded after the renewal cutoff, so the charge was valid for the new period. The draft reply should explain the policy and offer to route a policy exception request to a human billing specialist if the user wants review.",
     "missing_info_required": false,
-    "workflow_expectation": "perform_action",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "answer_or_offer_next_step",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CB_004",
     "category": "billing",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Can you explain this prorated charge on our bill?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "The upgrade was approved in workflow, but now there is a prorated charge on our bill. Can you explain it?",
     "source_data": {
       "customer_id": "ACCT_1004",
       "account_name": "Elm Retail",
@@ -743,7 +743,7 @@
     "difficulty": "standard",
     "is_edge_case": false,
     "edge_case_type": null,
-    "user_input": "I still haven't received the refund you promised last week.",
+    "user_input": "I still haven't received the refund you promised last week. What status can you share?",
     "source_data": {
       "customer_id": "ACCT_1005",
       "account_name": "Blue Peak Holdings",
@@ -755,11 +755,11 @@
       "billing_status": "refund_pending",
       "notes": "Prior refund approval exists but settlement delayed."
     },
-    "expected_output": "The account shows the credit was approved but not yet posted by the payment processor. I escalated this to a human billing specialist to investigate the delay and confirm the refund status.",
+    "expected_output": "The account shows the credit was approved but has not yet posted by the payment processor. The draft reply should explain the likely settlement delay and offer to route the case to a billing specialist if the user wants a manual status check.",
     "missing_info_required": false,
-    "workflow_expectation": "perform_action",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "answer_or_offer_next_step",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CB_006",
@@ -767,7 +767,7 @@
     "difficulty": "standard",
     "is_edge_case": false,
     "edge_case_type": null,
-    "user_input": "Can you remove the late fee from our invoice?",
+    "user_input": "Can you tell me whether the late fee on our invoice is eligible for removal?",
     "source_data": {
       "customer_id": "ACCT_1006",
       "account_name": "Vista Operations",
@@ -779,19 +779,19 @@
       "billing_status": "past_due",
       "notes": "One-time late fee waiver available."
     },
-    "expected_output": "I checked the account and the late fee qualifies for a one-time courtesy credit. I applied the billing credit and the adjusted balance should update shortly.",
+    "expected_output": "The account indicates the late fee qualifies for a one-time courtesy credit. The draft reply should explain the eligibility and ask the user to confirm before support applies the credit.",
     "missing_info_required": false,
-    "workflow_expectation": "perform_action",
-    "action_expected": true,
-    "action_type": "apply_billing_credit"
+    "workflow_expectation": "answer_or_offer_next_step",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CB_007",
     "category": "billing",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Did we get billed for annual support or monthly support?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "For the support renewal review, did we get billed for annual support or monthly support?",
     "source_data": {
       "customer_id": "ACCT_1007",
       "account_name": "Meridian Bio",
@@ -815,7 +815,7 @@
     "difficulty": "standard",
     "is_edge_case": false,
     "edge_case_type": null,
-    "user_input": "Our PO number changed but the invoice still shows the old one. Can that be corrected?",
+    "user_input": "Our PO number changed but the invoice still shows the old one. What should we do?",
     "source_data": {
       "customer_id": "ACCT_1008",
       "account_name": "Summit Energy",
@@ -827,19 +827,19 @@
       "billing_status": "active",
       "notes": "Invoice metadata changes require manual handling."
     },
-    "expected_output": "The invoice metadata can be corrected, but it requires manual billing operations support. I escalated the request to a human specialist so they can update the PO details.",
+    "expected_output": "Invoice metadata changes require manual billing operations support. The draft reply should explain that the PO correction can be routed to a billing specialist and ask the user to confirm the needed PO details.",
     "missing_info_required": false,
-    "workflow_expectation": "perform_action",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "answer_or_offer_next_step",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CB_009",
     "category": "billing",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Why am I seeing a charge for extra users?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "People asked for access last week, and now I see a charge for extra users. Why is that on the invoice?",
     "source_data": {
       "customer_id": "ACCT_1009",
       "account_name": "Atlas Media",
@@ -860,10 +860,10 @@
   {
     "scenario_id": "CB_010",
     "category": "billing",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "We upgraded yesterday and now I think the charge is wrong.",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "We upgraded yesterday, my VP is annoyed, and now I think the charge is wrong. Can you explain the bill?",
     "source_data": {
       "customer_id": "ACCT_1010",
       "account_name": "Lattice Health",
@@ -887,7 +887,7 @@
     "difficulty": "standard",
     "is_edge_case": false,
     "edge_case_type": null,
-    "user_input": "Can you waive the setup charge? We were told it would be free.",
+    "user_input": "We were told the setup charge would be free. Can you check what the response should say?",
     "source_data": {
       "customer_id": "ACCT_1011",
       "account_name": "Aster Manufacturing",
@@ -899,19 +899,19 @@
       "billing_status": "active",
       "notes": "Sales note promises waived setup fee."
     },
-    "expected_output": "The account notes indicate the setup fee should have been waived. I applied a billing credit for that amount to correct the invoice.",
+    "expected_output": "The account notes indicate the setup fee should have been waived. The draft reply should explain that the account appears eligible for a billing credit and ask for confirmation before support applies it.",
     "missing_info_required": false,
-    "workflow_expectation": "perform_action",
-    "action_expected": true,
-    "action_type": "apply_billing_credit"
+    "workflow_expectation": "answer_or_offer_next_step",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CB_012",
     "category": "billing",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "The invoice doesn't match the quote we signed. This is a serious issue.",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "The invoice doesn't match the quote we signed, and my CFO says this is urgent. Can you draft a reply?",
     "source_data": {
       "customer_id": "ACCT_1012",
       "account_name": "Praxis Logistics",
@@ -923,19 +923,19 @@
       "billing_status": "active",
       "notes": "Potential contract mismatch requires manual review."
     },
-    "expected_output": "Because the invoice may conflict with the signed commercial terms, this needs human review. I escalated it to a billing specialist so they can compare the invoice against the quote and contract.",
+    "expected_output": "Because the invoice may conflict with the signed commercial terms, the draft reply should acknowledge the concern and offer to route it to a billing specialist for quote and contract review.",
     "missing_info_required": false,
-    "workflow_expectation": "perform_action",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "answer_or_offer_next_step",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CB_013",
     "category": "billing",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "Is tax included in this bill or separate?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "Finance needs to approve this invoice. Is tax included in the bill or listed as a separate charge?",
     "source_data": {
       "customer_id": "ACCT_1013",
       "account_name": "Orchid Ventures",
@@ -956,10 +956,10 @@
   {
     "scenario_id": "CB_014",
     "category": "billing",
-    "difficulty": "standard",
-    "is_edge_case": false,
-    "edge_case_type": null,
-    "user_input": "We were charged during the outage week. Are we getting a credit?",
+    "difficulty": "edge",
+    "is_edge_case": true,
+    "edge_case_type": "cross_category_ambiguous",
+    "user_input": "We were charged during the outage week, and the team is upset. Are we eligible for a credit?",
     "source_data": {
       "customer_id": "ACCT_1014",
       "account_name": "Riverbank Partners",
@@ -971,11 +971,11 @@
       "billing_status": "active",
       "notes": "Outage credit approved for affected accounts."
     },
-    "expected_output": "This account is eligible for a service credit related to the outage. I applied the credit, and it should appear on the billing account shortly.",
+    "expected_output": "This account appears eligible for a service credit related to the outage. The draft reply should explain the eligibility and ask the user to confirm before support applies the credit.",
     "missing_info_required": false,
-    "workflow_expectation": "perform_action",
-    "action_expected": true,
-    "action_type": "apply_billing_credit"
+    "workflow_expectation": "answer_or_offer_next_step",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CE_001",
@@ -993,11 +993,11 @@
       "recent_contacts": 2,
       "notes": "Deadline-sensitive complaint with explicit business risk."
     },
-    "expected_output": "I\u2019m sorry this is putting your deadline at risk. I\u2019m escalating this to a human support specialist immediately so they can review the urgency and follow up directly.",
+    "expected_output": "The draft should acknowledge the deadline risk and recommend routing the case to a human support specialist for urgent review.",
     "missing_info_required": false,
-    "workflow_expectation": "escalate",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "draft_human_handoff",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CE_002",
@@ -1015,11 +1015,11 @@
       "recent_contacts": 1,
       "notes": "Explicit human request and executive escalation."
     },
-    "expected_output": "I understand the urgency. I\u2019m escalating this to a human support specialist right away so they can take over and respond directly.",
+    "expected_output": "The draft should acknowledge the urgency and recommend routing the case to a human support specialist who can take over.",
     "missing_info_required": false,
-    "workflow_expectation": "escalate",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "draft_human_handoff",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CE_003",
@@ -1037,11 +1037,11 @@
       "recent_contacts": 3,
       "notes": "Repeat-contact complaint warrants human review."
     },
-    "expected_output": "I\u2019m sorry you\u2019ve had to follow up multiple times. I\u2019m escalating this to a human specialist so the case can get manual attention and a clear next step.",
+    "expected_output": "The draft should apologize for repeated follow-ups and recommend human specialist review with a clear next step.",
     "missing_info_required": false,
-    "workflow_expectation": "escalate",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "draft_human_handoff",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CE_004",
@@ -1059,11 +1059,11 @@
       "recent_contacts": 0,
       "notes": "Potential security/privacy incident."
     },
-    "expected_output": "Because this may involve a sensitive document exposure, I\u2019m escalating this to a human specialist immediately for urgent review.",
+    "expected_output": "The draft should treat the possible sensitive document exposure as urgent and recommend immediate human specialist review.",
     "missing_info_required": false,
-    "workflow_expectation": "escalate",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "draft_human_handoff",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CE_005",
@@ -1081,11 +1081,11 @@
       "recent_contacts": 1,
       "notes": "Possible legal/commercial dispute."
     },
-    "expected_output": "This needs human review. I\u2019m escalating the case to a specialist so they can assess the contractual concern and follow up directly.",
+    "expected_output": "The draft should explain that the contractual invoice concern needs human review and recommend routing it to a specialist.",
     "missing_info_required": false,
-    "workflow_expectation": "escalate",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "draft_human_handoff",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CE_006",
@@ -1103,11 +1103,11 @@
       "recent_contacts": 0,
       "notes": "Executive meeting urgency requires human handling."
     },
-    "expected_output": "I\u2019m sorry this is blocking a time-sensitive meeting. I\u2019m escalating to a human support specialist immediately so they can help unblock the issue as quickly as possible.",
+    "expected_output": "The draft should acknowledge the time-sensitive access blocker and recommend routing the case to a human specialist quickly.",
     "missing_info_required": false,
-    "workflow_expectation": "escalate",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "draft_human_handoff",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CE_007",
@@ -1125,11 +1125,11 @@
       "recent_contacts": 1,
       "notes": "Churn risk and repeated outage concern."
     },
-    "expected_output": "I understand the seriousness of that concern. I\u2019m escalating this to a human specialist so they can review the account risk and follow up directly.",
+    "expected_output": "The draft should acknowledge the churn risk and recommend human specialist review of the account concern.",
     "missing_info_required": false,
-    "workflow_expectation": "escalate",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "draft_human_handoff",
+    "action_expected": false,
+    "action_type": null
   },
   {
     "scenario_id": "CE_008",
@@ -1147,10 +1147,10 @@
       "recent_contacts": 0,
       "notes": "Complaint about staff conduct requires human review."
     },
-    "expected_output": "I\u2019m sorry that happened. I\u2019m escalating this to a human support lead immediately so it can be reviewed appropriately.",
+    "expected_output": "The draft should acknowledge the abusive support-call report and recommend routing it to a human support lead for review.",
     "missing_info_required": false,
-    "workflow_expectation": "escalate",
-    "action_expected": true,
-    "action_type": "escalate_to_human"
+    "workflow_expectation": "draft_human_handoff",
+    "action_expected": false,
+    "action_type": null
   }
 ]

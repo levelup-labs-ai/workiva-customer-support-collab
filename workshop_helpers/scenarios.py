@@ -1,7 +1,5 @@
 import json
-from typing import Literal
-
-from pydantic import create_model
+import re
 
 
 def _messages(prompt: str, customer_message: str) -> list[dict]:
@@ -9,11 +7,6 @@ def _messages(prompt: str, customer_message: str) -> list[dict]:
         {"role": "system", "content": prompt},
         {"role": "user", "content": customer_message},
     ]
-
-
-def _build_router_decision_model(categories: list[str]):
-    category_literal = Literal.__getitem__(tuple(categories))
-    return create_model("RouterDecision", category=(category_literal, ...))
 
 
 def run_raw_llm(client, customer_message: str, prompt: str, max_tokens: int = 220) -> str:
@@ -41,25 +34,39 @@ def run_context_agent(
     return response.output_text.strip()
 
 
-def run_router_structured(client, customer_message: str, prompt: str, categories: list[str]) -> dict:
-    router_decision_model = _build_router_decision_model(categories)
-    response = client.responses.parse(
-        model="gpt-4o-mini",
-        input=_messages(prompt, customer_message),
-        temperature=0,
-        max_output_tokens=80,
-        text_format=router_decision_model,
-    )
-    parsed = response.output_parsed
-    if parsed is None:
-        content = response.output_text.strip()
-        payload = {"category": content}
-        category = content
-    else:
-        payload = parsed.model_dump()
-        category = payload.get("category", "")
+def parse_router_raw_response(raw_response: str, categories: list[str]) -> dict:
+    content = raw_response.strip()
+    category = ""
+    payload: dict = {"raw_response": content}
 
-    if category not in categories:
-        payload["category"] = "escalation" if "escalation" in categories else categories[0]
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError:
+        json_match = re.search(r"\{.*\}", content, re.DOTALL)
+        if json_match:
+            try:
+                parsed = json.loads(json_match.group(0))
+            except json.JSONDecodeError:
+                parsed = None
+        else:
+            parsed = None
+
+    if isinstance(parsed, dict):
+        payload.update(parsed)
+        category = str(parsed.get("category", "")).strip()
+    else:
+        category = content
+
+    normalized_categories = {item.lower(): item for item in categories}
+    normalized_category = category.lower()
+    if normalized_category in normalized_categories:
+        payload["category"] = normalized_categories[normalized_category]
+    else:
+        payload["category"] = category
         payload["fallback_reason"] = f"Invalid category returned: {category}"
     return payload
+
+
+def run_router_raw(client, customer_message: str, prompt: str, categories: list[str]) -> dict:
+    raw_response = run_raw_llm(client, customer_message, prompt, max_tokens=80)
+    return parse_router_raw_response(raw_response, categories)

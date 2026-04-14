@@ -84,21 +84,6 @@ BILLING_REFERENCE_DB: dict[str, dict] = (
     json.loads(_BILLING_REFERENCE_PATH.read_text()) if _BILLING_REFERENCE_PATH.exists() else {}
 )
 
-ACTION_RESULTS = {
-    "apply_billing_credit": {
-        "status": "credit_applied",
-        "eta": "visible on the account within 1 business day",
-    },
-    "escalate_to_human": {
-        "status": "escalated",
-        "queue": "human_billing_specialist",
-        "eta": "follow-up within 2 business hours",
-    },
-}
-
-ACTION_TOOL_NAMES = list(ACTION_RESULTS.keys())
-
-
 def snapshot_backend() -> BackendSnapshot:
     return {
         "billing_account_count": len(BILLING_ACCOUNT_DB),
@@ -134,32 +119,10 @@ def read_billing_reference(topic: str) -> dict:
     return {"topic": topic, **article}
 
 
-def _perform_action(account_id: str, action: str, details: str) -> dict:
-    result = dict(ACTION_RESULTS[action])
-    result["action"] = action
-    result["account_id"] = account_id
-    result["details"] = details
-    return result
-
-
-@function_tool
-def apply_billing_credit(account_id: str, details: str) -> dict:
-    """Apply a billing credit or courtesy adjustment to the account."""
-    return _perform_action(account_id, "apply_billing_credit", details)
-
-
-@function_tool
-def escalate_to_human(account_id: str, details: str) -> dict:
-    """Escalate a case to a human billing specialist."""
-    return _perform_action(account_id, "escalate_to_human", details)
-
-
 TOOLS = [
     get_billing_account,
     get_invoice_details,
     read_billing_reference,
-    apply_billing_credit,
-    escalate_to_human,
 ]
 
 
@@ -198,7 +161,6 @@ def run_billing_agent(
             )
         )
     tool_calls = []
-    action_calls = []
     for item in result.new_items:
         raw = getattr(item, "raw_item", None)
         if not raw or not hasattr(raw, "name"):
@@ -208,13 +170,11 @@ def run_billing_agent(
         if arguments is not None:
             entry["arguments"] = arguments
         tool_calls.append(entry)
-        if raw.name in ACTION_TOOL_NAMES:
-            action_calls.append(entry)
 
     return {
         "output": result.final_output,
         "tool_calls": tool_calls,
-        "action_calls": action_calls,
+        "action_calls": [],
     }
 
 

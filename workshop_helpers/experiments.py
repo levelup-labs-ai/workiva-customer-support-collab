@@ -7,16 +7,52 @@ from arize import ArizeClient
 
 from workshop_helpers.backend import TOOLS, hydrate_backend_from_dataset, run_billing_agent_threadsafe
 from workshop_helpers.metrics import pack_response_payload, build_evaluators
-from workshop_helpers.scenarios import run_context_agent, run_raw_llm, run_router_structured
+from workshop_helpers.scenarios import run_context_agent, run_raw_llm, run_router_raw
 
 DATASET_NAME = "workiva-ai-support-copilot-benchmark"
+V2_BILLING_DATASET_NAME = "workiva-v2-billing-draft-benchmark"
+V2_ALL_SPECIALISTS_DATASET_NAME = "workiva-v2-all-specialists-draft-benchmark"
+BRAND_VOICE_CALIBRATION_DATASET_NAME = "workiva-brand-voice-judge-calibration"
+
+BRAND_VOICE_CALIBRATION_EXAMPLES = [
+    {
+        "example_id": "BV_001",
+        "response_text": "I checked the invoice and found the account appears eligible for a billing credit. If you confirm, support can apply the credit to the account.",
+        "expected_label": "Good",
+        "annotation_note": "Clear, calm, and does not claim to take the write action.",
+    },
+    {
+        "example_id": "BV_002",
+        "response_text": "This is probably just how billing works. Contact someone else if you need it fixed.",
+        "expected_label": "Poor",
+        "annotation_note": "Dismissive and not useful.",
+    },
+    {
+        "example_id": "BV_003",
+        "response_text": "I understand why the duplicate charge is frustrating. The account data suggests this may qualify for a credit, and I can ask the billing team to apply it after you confirm.",
+        "expected_label": "Good",
+        "annotation_note": "Empathetic and careful about action permission.",
+    },
+    {
+        "example_id": "BV_004",
+        "response_text": "Your invoice was higher because of added seats. Let us know if you need anything else.",
+        "expected_label": "Acceptable",
+        "annotation_note": "Accurate but a little terse and generic.",
+    },
+    {
+        "example_id": "BV_005",
+        "response_text": "I already fixed the invoice and escalated the case.",
+        "expected_label": "Poor",
+        "annotation_note": "Claims write actions that the draft-reply system should not take.",
+    },
+]
 
 VARIANT_BEHAVIORS = {
     "router": "Routing classifier. It should map the user question to exactly one supported support category.",
     "permissions": "Prompt-only permissions specialist. It answers from policy-style guidance without tools or hidden context.",
     "review_workflow": "Context-aware workflow specialist. It answers using retrieved workflow state and blocker context.",
-    "billing": "Tool-using billing specialist. It uses tools and billing JSON guidance before acting or answering.",
-    "v2_routed": "Two-stage support copilot. It routes first, then dispatches to the specialist matched to the routed category.",
+    "billing": "Tool-using billing specialist. It uses read-only tools and billing JSON guidance before drafting an answer.",
+    "v2_routed": "Two-stage support copilot. It routes first, then dispatches to the specialist matched to the routed category to draft a reply.",
 }
 
 
@@ -34,6 +70,11 @@ def select_cases(dataset: list[dict], limit_n: int | None = None, seed: int = 42
 
 def select_cases_by_category(dataset: list[dict], category: str) -> list[dict]:
     return [case for case in dataset if case["category"] == category]
+
+
+def select_cases_by_categories(dataset: list[dict], categories: list[str]) -> list[dict]:
+    category_set = set(categories)
+    return [case for case in dataset if case["category"] in category_set]
 
 
 def summarize_dataset(dataset: list[dict]) -> dict:
@@ -63,19 +104,24 @@ def build_arize_dataframe(dataset: list[dict]) -> pd.DataFrame:
     )
 
 
-def ensure_arize_dataset(arize_api_key: str, arize_space_id: str, dataset: list[dict]) -> dict:
+def ensure_arize_dataset(
+    arize_api_key: str,
+    arize_space_id: str,
+    dataset: list[dict],
+    dataset_name: str = DATASET_NAME,
+) -> dict:
     client = ArizeClient(api_key=arize_api_key)
     dataset_frame = build_arize_dataframe(dataset)
     list_response = client.datasets.list(space=arize_space_id)
 
-    existing = next((item for item in list_response.datasets if item.name == DATASET_NAME), None)
+    existing = next((item for item in list_response.datasets if item.name == dataset_name), None)
     if existing:
         dataset_id = existing.id
         created = False
     else:
         response = client.datasets.create(
             space=arize_space_id,
-            name=DATASET_NAME,
+            name=dataset_name,
             examples=dataset_frame,
         )
         dataset_id = response.id
@@ -84,7 +130,42 @@ def ensure_arize_dataset(arize_api_key: str, arize_space_id: str, dataset: list[
     return {
         "client": client,
         "dataset_id": dataset_id,
-        "dataset_name": DATASET_NAME,
+        "dataset_name": dataset_name,
+        "row_count": len(dataset_frame),
+        "created": created,
+        "dataframe": dataset_frame,
+    }
+
+
+def build_brand_voice_calibration_dataframe() -> pd.DataFrame:
+    return pd.DataFrame(BRAND_VOICE_CALIBRATION_EXAMPLES)
+
+
+def ensure_brand_voice_calibration_dataset(arize_api_key: str, arize_space_id: str) -> dict:
+    client = ArizeClient(api_key=arize_api_key)
+    dataset_frame = build_brand_voice_calibration_dataframe()
+    list_response = client.datasets.list(space=arize_space_id)
+
+    existing = next(
+        (item for item in list_response.datasets if item.name == BRAND_VOICE_CALIBRATION_DATASET_NAME),
+        None,
+    )
+    if existing:
+        dataset_id = existing.id
+        created = False
+    else:
+        response = client.datasets.create(
+            space=arize_space_id,
+            name=BRAND_VOICE_CALIBRATION_DATASET_NAME,
+            examples=dataset_frame,
+        )
+        dataset_id = response.id
+        created = True
+
+    return {
+        "client": client,
+        "dataset_id": dataset_id,
+        "dataset_name": BRAND_VOICE_CALIBRATION_DATASET_NAME,
         "row_count": len(dataset_frame),
         "created": created,
         "dataframe": dataset_frame,
@@ -145,14 +226,9 @@ def dispatch_specialist_response(
     response_text = escalation_response_template.format(
         account_name=source_data.get("account_name", "your team")
     )
-    action_call = {
-        "name": "escalate_to_human",
-        "arguments": json.dumps({"customer_id": source_data.get("customer_id", "UNKNOWN"), "reason": case["user_input"]}),
-    }
     return pack_response_payload(
         response_text,
         tool_calls=[router_record],
-        action_calls=[action_call],
         metadata={"route_category": "escalation"},
     )
 
@@ -165,19 +241,20 @@ def build_tasks(
     prompt_review_workflow: str,
     prompt_billing: str,
     escalation_response_template: str,
+    routing_categories: list[str] | None = None,
 ) -> dict:
     cases_by_id = dataset_index(dataset)
-    categories = sorted({case["category"] for case in dataset})
+    categories = routing_categories or sorted({case["category"] for case in dataset})
 
     def task_router(row: dict) -> str:
-        route = run_router_structured(client, row["user_input"], prompt_router, categories)
+        route = run_router_raw(client, row["user_input"], prompt_router, categories)
         return route["category"]
 
     def task_v2_routed(row: dict) -> str:
         case = cases_by_id.get(row["scenario_id"])
         if not case:
             return pack_response_payload("Error: case not found")
-        route = run_router_structured(client, row["user_input"], prompt_router, categories)
+        route = run_router_raw(client, row["user_input"], prompt_router, categories)
         return dispatch_specialist_response(
             client=client,
             route_category=route["category"],
@@ -195,7 +272,7 @@ def run_router_local(client, dataset: list[dict], prompt_router: str) -> pd.Data
     categories = sorted({case["category"] for case in dataset})
     rows = []
     for case in dataset:
-        route = run_router_structured(client, case["user_input"], prompt_router, categories)
+        route = run_router_raw(client, case["user_input"], prompt_router, categories)
         predicted = route["category"]
         rows.append(
             {
@@ -265,9 +342,9 @@ def production_readiness_checklist() -> list[tuple[str, str, str]]:
     return [
         ("router exact-match accuracy is stable", "check route experiment", "routing quality should be good before adding specialist autonomy"),
         ("brand voice remains strong", "check routed copilot experiment", "brand voice is a guardrail, not the primary success metric"),
-        ("helpfulness stays high by category", "check routed copilot experiment", "specialists should answer appropriately for their support category"),
-        ("human escalation is triggered when required", "check code evals", "high-risk or angry cases must hand off safely"),
-        ("billing actions correspond to real workflows", "stubbed in demo backend", "verify this before any real pilot"),
+        ("human escalation language is clear", "inspect routed traces", "high-risk or angry cases should draft a human handoff"),
+        ("billing tools answer the right question", "inspect billing traces", "add or fix read-only tools when the draft lacks account facts"),
+        ("brand voice judge is calibrated", "check calibration dataset", "judge labels should match human annotations before reuse"),
         ("sample size is appropriate for workshop runtime", "configurable via LIMIT_N_CASES", "smaller runs are faster but noisier"),
     ]
 
@@ -294,6 +371,8 @@ def prepare_experiment_bundle(
     limit_n: int | None = None,
     arize_client=None,
     dataset_id: str | None = None,
+    dataset_name: str = DATASET_NAME,
+    routing_categories: list[str] | None = None,
 ) -> dict:
     selected_dataset = select_cases(dataset, limit_n=limit_n)
     hydrate_backend_from_dataset(dataset)
@@ -302,13 +381,18 @@ def prepare_experiment_bundle(
         arize_bundle = {
             "client": arize_client,
             "dataset_id": dataset_id,
-            "dataset_name": DATASET_NAME,
+            "dataset_name": dataset_name,
             "row_count": len(selected_dataset),
             "created": False,
             "dataframe": build_arize_dataframe(selected_dataset),
         }
     else:
-        arize_bundle = ensure_arize_dataset(arize_api_key, arize_space_id, selected_dataset)
+        arize_bundle = ensure_arize_dataset(
+            arize_api_key,
+            arize_space_id,
+            selected_dataset,
+            dataset_name=dataset_name,
+        )
     return {
         **arize_bundle,
         "dataset_lookup": dataset_lookup,
@@ -321,6 +405,7 @@ def prepare_experiment_bundle(
             prompt_review_workflow,
             prompt_billing,
             escalation_response_template,
+            routing_categories=routing_categories,
         ),
         "build_evaluators": lambda variant_name: build_evaluators(
             client,
