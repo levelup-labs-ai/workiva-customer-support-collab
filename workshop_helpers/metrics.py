@@ -4,13 +4,6 @@ import re
 from arize.experiments.evaluators.base import EvaluationResult, Evaluator
 
 LABEL_SCORE = {"Good": 1.0, "Acceptable": 0.5, "Poor": 0.0}
-VARIANT_DISPLAY = {
-    "router": "router",
-    "permissions": "permissions",
-    "review_workflow": "review_workflow",
-    "billing": "billing",
-    "v2_routed": "v2_routed",
-}
 
 
 def _parse_judge_response(text: str) -> tuple[str, str]:
@@ -124,9 +117,7 @@ class BrandVoiceEvaluator(Evaluator):
 
 def build_evaluators(
     client,
-    dataset_by_id: dict,
     variant_name: str,
-    variant_behavior: str,
     judge_prompts: dict,
 ) -> list[Evaluator]:
     if variant_name == "router":
