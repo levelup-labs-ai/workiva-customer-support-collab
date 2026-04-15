@@ -9,7 +9,7 @@ def _messages(prompt: str, customer_message: str) -> list[dict]:
     ]
 
 
-def run_raw_llm(client, customer_message: str, prompt: str, max_tokens: int = 220) -> str:
+def _run_text_response(client, customer_message: str, prompt: str, max_tokens: int) -> str:
     response = client.responses.create(
         model="gpt-4o-mini",
         input=_messages(prompt, customer_message),
@@ -17,6 +17,10 @@ def run_raw_llm(client, customer_message: str, prompt: str, max_tokens: int = 22
         max_output_tokens=max_tokens,
     )
     return response.output_text.strip()
+
+
+def run_raw_llm(client, customer_message: str, prompt: str, max_tokens: int = 220) -> str:
+    return _run_text_response(client, customer_message, prompt, max_tokens)
 
 
 def run_context_agent(
@@ -25,13 +29,7 @@ def run_context_agent(
     prompt: str,
     max_tokens: int = 220,
 ) -> str:
-    response = client.responses.create(
-        model="gpt-4o-mini",
-        input=_messages(prompt, customer_message),
-        temperature=0.3,
-        max_output_tokens=max_tokens,
-    )
-    return response.output_text.strip()
+    return _run_text_response(client, customer_message, prompt, max_tokens)
 
 
 def parse_router_raw_response(raw_response: str, categories: list[str]) -> dict:

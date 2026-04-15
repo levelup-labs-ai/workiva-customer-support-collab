@@ -30,27 +30,19 @@ class EscalationSourceData(TypedDict):
 class BaseCase(TypedDict):
     scenario_id: str
     category: str
-    difficulty: str
-    is_edge_case: bool
     user_input: str
     source_data: dict[str, object]
-    expected_output: str
-    missing_info_required: bool
     workflow_expectation: str
-    action_expected: bool
-    action_type: str | None
 
 
 class BillingCase(BaseCase):
     category: Literal["billing"]
     source_data: BillingSourceData
-    action_type: str | None
 
 
 class EscalationCase(BaseCase):
     category: Literal["escalation"]
     source_data: EscalationSourceData
-    action_type: str | None
 
 
 SupportCase = BaseCase
