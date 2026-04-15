@@ -42,20 +42,6 @@
     "workflow_expectation": "answer_or_offer_next_step"
   },
   {
-    "scenario_id": "CP_004",
-    "category": "permissions",
-    "user_input": "My access request is stuck in the approval workflow from yesterday, but I only need permission to the audit tracker. What should I do next?",
-    "source_data": {
-      "resource_name": "Audit tracker",
-      "resource_type": "spreadsheet",
-      "current_access": "pending_request",
-      "owner_team": "Internal Audit",
-      "request_path": "Pending request follow-up",
-      "policy_note": "Stale requests should be escalated to the owner team after one business day."
-    },
-    "workflow_expectation": "answer_or_offer_next_step"
-  },
-  {
     "scenario_id": "CP_005",
     "category": "permissions",
     "user_input": "A contractor needs the monthly close checklist for a workflow review. Are contractors allowed to get access?",
@@ -94,20 +80,6 @@
       "owner_team": "Marketing Planning",
       "request_path": "Request lower access or owner exception",
       "policy_note": "Editor access limited to Marketing Planning."
-    },
-    "workflow_expectation": "answer_or_offer_next_step"
-  },
-  {
-    "scenario_id": "CP_008",
-    "category": "permissions",
-    "user_input": "Legal review is waiting on numbers in the investor cap table, but I cannot open it. Do I need admin approval?",
-    "source_data": {
-      "resource_name": "Investor cap table",
-      "resource_type": "spreadsheet",
-      "current_access": "none",
-      "owner_team": "Corporate Development",
-      "request_path": "Dual approval workflow",
-      "policy_note": "Highly restricted files require admin review."
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -285,25 +257,6 @@
     "workflow_expectation": "answer_or_offer_next_step"
   },
   {
-    "scenario_id": "CR_006",
-    "category": "review_workflow",
-    "user_input": "I have editor permission, but the workflow is stuck. How do I know whether the file is waiting on me or someone else?",
-    "source_data": {
-      "file_name": "Investor FAQ",
-      "current_stage": "IR review",
-      "completed_approvals": [
-        "Author",
-        "Manager"
-      ],
-      "pending_approvals": [
-        "Investor Relations"
-      ],
-      "blocking_reason": "Pending IR approval",
-      "next_step": "Wait for the pending approver or reassign if needed."
-    },
-    "workflow_expectation": "answer_or_offer_next_step"
-  },
-  {
     "scenario_id": "CR_007",
     "category": "review_workflow",
     "user_input": "What happens after legal approves this doc?",
@@ -406,24 +359,6 @@
       ],
       "blocking_reason": "Board-facing file requires CEO approval",
       "next_step": "Collect CEO approval before publishing."
-    },
-    "workflow_expectation": "answer_or_offer_next_step"
-  },
-  {
-    "scenario_id": "CR_013",
-    "category": "review_workflow",
-    "user_input": "The status says workflow exception on a file with billing policy language. What should I check first?",
-    "source_data": {
-      "file_name": "Quarterly risk update",
-      "current_stage": "workflow exception",
-      "completed_approvals": [
-        "Author"
-      ],
-      "pending_approvals": [
-        "Unassigned replacement needed"
-      ],
-      "blocking_reason": "Original reviewer removed from workspace",
-      "next_step": "Assign a new eligible reviewer."
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -684,51 +619,6 @@
     "workflow_expectation": "answer_or_offer_next_step"
   },
   {
-    "scenario_id": "CE_001",
-    "category": "escalation",
-    "user_input": "I'm extremely dissatisfied. The platform is so slow that we're going to miss our filing deadline.",
-    "source_data": {
-      "customer_id": "ACCT_2001",
-      "account_name": "Redwood Equity",
-      "account_tier": "enterprise",
-      "risk_level": "high",
-      "deadline": "today",
-      "recent_contacts": 2,
-      "notes": "Deadline-sensitive complaint with explicit business risk."
-    },
-    "workflow_expectation": "draft_human_handoff"
-  },
-  {
-    "scenario_id": "CE_002",
-    "category": "escalation",
-    "user_input": "Your product is failing and my CEO is furious. I need a human right now.",
-    "source_data": {
-      "customer_id": "ACCT_2002",
-      "account_name": "Helix Foods",
-      "account_tier": "business",
-      "risk_level": "high",
-      "deadline": "today",
-      "recent_contacts": 1,
-      "notes": "Explicit human request and executive escalation."
-    },
-    "workflow_expectation": "draft_human_handoff"
-  },
-  {
-    "scenario_id": "CE_003",
-    "category": "escalation",
-    "user_input": "We've contacted support three times and nothing is resolved. This is unacceptable.",
-    "source_data": {
-      "customer_id": "ACCT_2003",
-      "account_name": "Pioneer Trust",
-      "account_tier": "growth",
-      "risk_level": "medium",
-      "deadline": "this week",
-      "recent_contacts": 3,
-      "notes": "Repeat-contact complaint warrants human review."
-    },
-    "workflow_expectation": "draft_human_handoff"
-  },
-  {
     "scenario_id": "CE_004",
     "category": "escalation",
     "user_input": "We may have shared a sensitive document with the wrong external party. Please help immediately.",
@@ -800,6 +690,111 @@
       "deadline": "not specified",
       "recent_contacts": 0,
       "notes": "Complaint about staff conduct requires human review."
+    },
+    "workflow_expectation": "draft_human_handoff"
+  },
+  {
+    "scenario_id": "CE_009",
+    "category": "escalation",
+    "user_input": "Can support restore the version from before yesterday's changes? We overwrote the wrong board deck.",
+    "source_data": {
+      "customer_id": "ACCT_2009",
+      "account_name": "Harbor Point Advisors",
+      "account_tier": "enterprise",
+      "risk_level": "high",
+      "deadline": "tomorrow morning",
+      "recent_contacts": 1,
+      "notes": "Version recovery request is outside the supported router taxonomy and needs human handling."
+    },
+    "workflow_expectation": "draft_human_handoff"
+  },
+  {
+    "scenario_id": "CE_010",
+    "category": "escalation",
+    "user_input": "Email notifications stopped going out to reviewers this morning. Is something broken?",
+    "source_data": {
+      "customer_id": "ACCT_2010",
+      "account_name": "Crestline Foods",
+      "account_tier": "business",
+      "risk_level": "medium",
+      "deadline": "today",
+      "recent_contacts": 0,
+      "notes": "Notification delivery failure is a product issue, not a workflow-state question."
+    },
+    "workflow_expectation": "draft_human_handoff"
+  },
+  {
+    "scenario_id": "CE_011",
+    "category": "escalation",
+    "user_input": "Search is not finding documents created today, even though they exist and are shared correctly.",
+    "source_data": {
+      "customer_id": "ACCT_2011",
+      "account_name": "Granite Peak Capital",
+      "account_tier": "scale",
+      "risk_level": "medium",
+      "deadline": "today",
+      "recent_contacts": 1,
+      "notes": "Search/indexing defect is outside the supported router taxonomy."
+    },
+    "workflow_expectation": "draft_human_handoff"
+  },
+  {
+    "scenario_id": "CE_012",
+    "category": "escalation",
+    "user_input": "Bulk import is skipping rows without any error message. We need help diagnosing it.",
+    "source_data": {
+      "customer_id": "ACCT_2012",
+      "account_name": "Northshore Energy",
+      "account_tier": "growth",
+      "risk_level": "medium",
+      "deadline": "this week",
+      "recent_contacts": 0,
+      "notes": "Import pipeline defect is outside the supported router taxonomy and should route to a human."
+    },
+    "workflow_expectation": "draft_human_handoff"
+  },
+  {
+    "scenario_id": "CE_013",
+    "category": "escalation",
+    "user_input": "Our renewal invoice is coming up, but the bigger issue is that Diligent is offering a much lower enterprise price and better support terms. Who can discuss our commercial options?",
+    "source_data": {
+      "customer_id": "ACCT_2013",
+      "account_name": "Riverside Holdings",
+      "account_tier": "enterprise",
+      "risk_level": "high",
+      "deadline": "this week",
+      "recent_contacts": 1,
+      "notes": "Competitor-driven commercial negotiation is outside the supported billing taxonomy and should route to a human."
+    },
+    "workflow_expectation": "draft_human_handoff"
+  },
+  {
+    "scenario_id": "CE_014",
+    "category": "escalation",
+    "user_input": "The bill is higher than we want, but this is really a vendor comparison question. Another provider offered better pricing and onboarding. Who handles that conversation?",
+    "source_data": {
+      "customer_id": "ACCT_2014",
+      "account_name": "Apex Governance",
+      "account_tier": "business",
+      "risk_level": "medium",
+      "deadline": "before renewal meeting",
+      "recent_contacts": 0,
+      "notes": "Vendor comparison and commercial discussion belong with human escalation, not billing operations."
+    },
+    "workflow_expectation": "draft_human_handoff"
+  },
+  {
+    "scenario_id": "CE_015",
+    "category": "escalation",
+    "user_input": "I am not asking why the invoice is high. I need someone to discuss a discount because a competitor gave us a stronger offer.",
+    "source_data": {
+      "customer_id": "ACCT_2015",
+      "account_name": "Stonebridge Systems",
+      "account_tier": "growth",
+      "risk_level": "medium",
+      "deadline": "this week",
+      "recent_contacts": 1,
+      "notes": "Discount and competitor-offer discussion is a commercial escalation, not a billing explanation."
     },
     "workflow_expectation": "draft_human_handoff"
   }
