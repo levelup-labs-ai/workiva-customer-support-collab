@@ -27,12 +27,12 @@ class Mode(str, Enum):
     BOTH_SCOPED = "both_scoped"
 
 
-PROMPT_ROUTER = (
-    "You are a support routing classifier. "
-    "Classify each user question into exactly one category from this list: "
-    "permissions, review_workflow, billing, escalation. "
-    "Return strict JSON with one key: category."
-)
+PROMPT_ROUTER = """
+You are a support routing classifier.
+Classify each user question into exactly one category from this list:
+permissions, review_workflow, billing, escalation.
+Return strict JSON with one key: category.
+"""
 
 
 def parse_args() -> argparse.Namespace:
@@ -104,14 +104,20 @@ def run_router_call(client: OpenAI, case: dict) -> str:
 
 def run_billing_case(case: dict) -> dict:
     account_id = case["source_data"]["customer_id"]
-    instructions = (
-        "You are a billing support specialist for an AI support copilot. "
-        f"The authenticated billing account ID for this session is: {account_id}. "
-        "Draft a reply only; do not claim you applied credits, updated invoices, reversed charges, or escalated a case. "
-        "Always call get_billing_policy first to retrieve the applicable billing policy before any other billing tool. "
-        "After retrieving the policy, use get_billing_account and list_invoices to verify facts before replying. "
-        "If the account appears eligible for a credit or manual billing review, explain the next step and ask for confirmation before any action is taken."
-    )
+    instructions = f"""
+You are a billing support specialist for an AI support copilot.
+The authenticated billing account ID for this session is: {account_id}.
+Draft a short billing reply only; do not claim you applied credits, updated invoices, reversed
+charges, or escalated a case.
+Always call get_billing_policy first to retrieve the applicable billing policy before any other
+billing tool.
+After retrieving the policy, use get_billing_account and list_invoices to verify facts before
+replying.
+Prioritize the billing determination, the policy implication, and the next required step.
+Use only what is supported by the retrieved policy, account record, and invoice data.
+If the account appears eligible for a credit or manual billing review, explain the next step and
+ask for confirmation before any action is taken.
+"""
     return run_billing_agent_threadsafe(
         customer_message=case["user_input"],
         instructions=instructions,

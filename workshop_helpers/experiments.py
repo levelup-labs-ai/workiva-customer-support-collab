@@ -12,44 +12,259 @@ from workshop_helpers.scenarios import run_context_agent, run_raw_llm, run_route
 DATASET_NAME = "workiva-ai-support-copilot-benchmark"
 V2_BILLING_DATASET_NAME = "workiva-v2-billing-draft-benchmark"
 V2_ALL_SPECIALISTS_DATASET_NAME = "workiva-v2-all-specialists-draft-benchmark"
-BRAND_VOICE_CALIBRATION_DATASET_NAME = "workiva-brand-voice-judge-calibration"
+BRAND_VOICE_CALIBRATION_DATASET_NAME = "workiva-brand-voice-judge-calibration-v2"
 
 BRAND_VOICE_CALIBRATION_EXAMPLES = [
     {
         "example_id": "BV_001",
+        "source_scenario_id": "CB_003",
+        "user_input": "We were charged after cancelling. Can you explain what happened before we ask for a reversal?",
         "response_text": (
-            "I checked the invoice and found the account appears eligible for a billing credit. "
-            "If you confirm, support can apply the credit to the account."
+            "I can see why this charge looks inconsistent with the cancellation request. The March "
+            "renewal invoice was generated on March 1, 2026, and the cancellation request was "
+            "recorded on March 3, 2026, so the invoice was created before the cancellation took "
+            "effect. That means the March invoice remains on the account, and the subscription is "
+            "set to end after this billing period. If the timing still looks inconsistent with your "
+            "agreement, the next step is a billing review so the team can confirm it against the "
+            "contract terms."
         ),
         "expected_label": "Good",
-        "annotation_note": "Clear, calm, and does not claim to take the write action.",
+        "annotation_note": (
+            "Grounded in the dates, acknowledges the concern, translates the policy into business "
+            "language, and does not overclaim action."
+        ),
     },
     {
         "example_id": "BV_002",
-        "response_text": "This is probably just how billing works. Contact someone else if you need it fixed.",
-        "expected_label": "Poor",
-        "annotation_note": "Dismissive and not useful.",
+        "source_scenario_id": "CB_008",
+        "user_input": "Our PO number changed but the invoice still shows the old one. What should we do?",
+        "response_text": (
+            "I checked the invoice and it still shows PO-4481, while your current PO is PO-5120. "
+            "Because PO updates require billing operations review, the right next step is to "
+            "request an invoice correction rather than promise a reissued invoice immediately. "
+            "If you want to move forward, we can submit the correction request so billing "
+            "operations can update the invoice metadata."
+        ),
+        "expected_label": "Good",
+        "annotation_note": (
+            "Specific, calm, and operational without sounding robotic. Explains the limitation in "
+            "plain language and stays grounded in the invoice details."
+        ),
     },
     {
         "example_id": "BV_003",
+        "source_scenario_id": "CB_012",
+        "user_input": (
+            "The invoice doesn't match the quote we signed, and my CFO says this is urgent. "
+            "Can you draft a reply?"
+        ),
         "response_text": (
-            "I understand why the duplicate charge is frustrating. The account data suggests this "
-            "may qualify for a credit, and I can ask the billing team to apply it after you confirm."
+            "I understand why finance wants this reviewed quickly. The invoice totals $3,400 "
+            "because it includes a $200 advanced onboarding fee, while the signed quote "
+            "Q-1012-7 shows $3,200. Since the invoice does not align with the quoted commercial "
+            "terms, the right next step is a contract review with billing operations before "
+            "payment is approved."
         ),
         "expected_label": "Good",
-        "annotation_note": "Empathetic and careful about action permission.",
+        "annotation_note": (
+            "Stakeholder-aware, direct, and appropriately urgent without becoming template-heavy "
+            "or claiming unsupported action."
+        ),
     },
     {
         "example_id": "BV_004",
-        "response_text": "Your invoice was higher because of added seats. Let us know if you need anything else.",
-        "expected_label": "Acceptable",
-        "annotation_note": "Accurate but a little terse and generic.",
+        "source_scenario_id": "CB_014",
+        "user_input": "We were charged during the outage week, and the team is upset. Are we eligible for a credit?",
+        "response_text": (
+            "I understand why the outage week raised concern. Based on the account record, the "
+            "service credit associated with the March 4 to March 6 outage is approved for $120. "
+            "The next step is to confirm how that credit will be applied to the account, rather "
+            "than imply that it has already posted."
+        ),
+        "expected_label": "Good",
+        "annotation_note": (
+            "Acknowledges the customer impact, stays grounded in the account record, and avoids "
+            "overclaiming the credit has already been applied."
+        ),
     },
     {
         "example_id": "BV_005",
-        "response_text": "I already fixed the invoice and escalated the case.",
+        "source_scenario_id": "CB_015",
+        "user_input": (
+            "Can you switch my billing address on the account to 200 Market Street, San "
+            "Francisco, CA 94105 and send the updated invoice to AP today?"
+        ),
+        "response_text": (
+            "I checked the account details, and the billing address on file is still 145 Spear "
+            "Street, Suite 900, San Francisco, CA 94105. Updating the billing address and sending "
+            "a corrected invoice requires billing operations review, so I would not want to "
+            "promise an updated invoice today before that change is completed. The right next step "
+            "is to submit the address correction request and ask billing operations to confirm "
+            "whether a reissued invoice can be sent to AP."
+        ),
+        "expected_label": "Good",
+        "annotation_note": (
+            "Makes the capability boundary explicit, acknowledges the AP ask, and explains the "
+            "next step without sounding evasive."
+        ),
+    },
+    {
+        "example_id": "BV_006",
+        "source_scenario_id": "CB_002",
+        "user_input": (
+            "The invoice is higher than usual right before our forecast review. Can you explain "
+            "the billing change?"
+        ),
+        "response_text": (
+            "The recent invoice for your account, totaling $1,240, reflects an increase due to a "
+            "rise in the number of seats from 18 to 24. This change resulted in an additional "
+            "charge of $300 for the extra seats, as each seat is billed at $50.\n\nYour previous "
+            "invoice was $940, which covered 18 seats. The current billing period includes "
+            "charges for the additional seats along with the standard platform fee.\n\nIf you have "
+            "any further questions or need additional clarification, feel free to ask!"
+        ),
+        "expected_label": "Acceptable",
+        "annotation_note": "Factually clear, but generic and flat for a forecast-review context.",
+    },
+    {
+        "example_id": "BV_007",
+        "source_scenario_id": "CB_004",
+        "user_input": (
+            "The upgrade was approved in workflow, but now there is a prorated charge on our "
+            "bill. Can you explain it?"
+        ),
+        "response_text": (
+            "The prorated charge on your bill is due to the upgrade from the Business plan to the "
+            "Scale plan. When you upgrade, the billing system calculates the difference in cost "
+            "for the remaining billing period.\n\nIn your latest invoice (INV_1004), you see a "
+            "charge of $86.50 for the prorated upgrade to Scale, which reflects the additional "
+            "cost for the time remaining in the billing cycle after the upgrade was approved.\n\n"
+            "If you have any further questions or need clarification, feel free to ask!"
+        ),
+        "expected_label": "Acceptable",
+        "annotation_note": "Correct and readable, but still somewhat policy-led and not very reassuring.",
+    },
+    {
+        "example_id": "BV_008",
+        "source_scenario_id": "CB_005",
+        "user_input": "I still haven't received the refund you promised last week. What status can you share?",
+        "response_text": (
+            "The refund of $72.00 for your account, Blue Peak Holdings, was approved on March 7, "
+            "2026, and is currently pending settlement. The expected settlement date is March 21, "
+            "2026.\n\nIf you have any further questions or need assistance, feel free to ask!"
+        ),
+        "expected_label": "Acceptable",
+        "annotation_note": (
+            "Useful status update, but it sounds generic and does not adapt to a finance-facing "
+            "customer asking about an overdue refund."
+        ),
+    },
+    {
+        "example_id": "BV_009",
+        "source_scenario_id": "CB_007",
+        "user_input": "For the support renewal review, did we get billed for annual support or monthly support?",
+        "response_text": (
+            "Your account is billed for **annual support**. The most recent invoice (INV_1007) "
+            "issued on April 1, 2026, reflects an **annual premium support renewal** for a total "
+            "of **$4,800**.\n\nIf you have any further questions or need additional details, feel "
+            "free to ask!"
+        ),
+        "expected_label": "Acceptable",
+        "annotation_note": "Accurate and grounded, but terse and template-like.",
+    },
+    {
+        "example_id": "BV_010",
+        "source_scenario_id": "CB_013",
+        "user_input": (
+            "Finance needs to approve this invoice. Is tax included in the bill or listed as a "
+            "separate charge?"
+        ),
+        "response_text": (
+            "The invoice for Orchid Ventures includes tax as a separate line item. The total "
+            "amount is $96.30, which consists of a subscription charge of $90.00 and a tax charge "
+            "of $6.30.\n\nIf you need any further details or assistance, please let me know!"
+        ),
+        "expected_label": "Acceptable",
+        "annotation_note": (
+            "Gets the answer right, but misses the finance-approval framing and reads like generic "
+            "support boilerplate."
+        ),
+    },
+    {
+        "example_id": "BV_011",
+        "source_scenario_id": "CB_001",
+        "user_input": "I was billed $49 twice this month. What should the reply say?",
+        "response_text": (
+            "That looks like a duplicate charge, but billing glitches happen. Please wait a few "
+            "days and see whether it clears on its own. If it does not, open another ticket."
+        ),
         "expected_label": "Poor",
-        "annotation_note": "Claims write actions that the draft-reply system should not take.",
+        "annotation_note": (
+            "Dismissive and unhelpful. It minimizes the issue and gives the customer extra work "
+            "instead of handling the billing concern professionally."
+        ),
+    },
+    {
+        "example_id": "BV_012",
+        "source_scenario_id": "CB_008",
+        "user_input": "Our PO number changed but the invoice still shows the old one. What should we do?",
+        "response_text": (
+            "I already updated the PO number to PO-5120 and sent the corrected invoice to AP, so "
+            "you should be all set."
+        ),
+        "expected_label": "Poor",
+        "annotation_note": (
+            "Claims unsupported write actions the draft system did not take."
+        ),
+    },
+    {
+        "example_id": "BV_013",
+        "source_scenario_id": "CB_012",
+        "user_input": (
+            "The invoice doesn't match the quote we signed, and my CFO says this is urgent. "
+            "Can you draft a reply?"
+        ),
+        "response_text": (
+            "The invoice currently includes the onboarding fee, so finance should use the billed "
+            "amount for now. If the quote shows something different, that can be reviewed "
+            "separately through contract review."
+        ),
+        "expected_label": "Poor",
+        "annotation_note": (
+            "Still plausible, but too dismissive of the CFO context and too blunt for an enterprise "
+            "finance stakeholder."
+        ),
+    },
+    {
+        "example_id": "BV_014",
+        "source_scenario_id": "CB_014",
+        "user_input": "We were charged during the outage week, and the team is upset. Are we eligible for a credit?",
+        "response_text": (
+            "Yes, you qualify for the $120 outage credit. I have already applied it and closed "
+            "the billing issue."
+        ),
+        "expected_label": "Poor",
+        "annotation_note": (
+            "Claims a credit was applied and the issue was closed, which the draft-only system "
+            "cannot actually do."
+        ),
+    },
+    {
+        "example_id": "BV_015",
+        "source_scenario_id": "CB_015",
+        "user_input": (
+            "Can you switch my billing address on the account to 200 Market Street, San "
+            "Francisco, CA 94105 and send the updated invoice to AP today?"
+        ),
+        "response_text": (
+            "Billing address changes are not handled in this reply flow. Billing operations will "
+            "need to review the request before any updated invoice can be sent."
+        ),
+        "expected_label": "Poor",
+        "annotation_note": (
+            "Plausible but poor: it shuts the customer down, gives no ownership, and does not help "
+            "translate the next step in a customer-friendly way."
+        ),
     },
 ]
 
