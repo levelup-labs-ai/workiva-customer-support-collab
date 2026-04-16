@@ -1,26 +1,45 @@
 {
-  "duplicate_charge": {
-    "policy": "If the same invoice or billing period was charged twice due to a system error, support may apply a credit for the duplicate amount.",
-    "recommended_next_step": "draft_credit_confirmation"
+  "charge_explanation": {
+    "policy": "Use invoice data to explain normal billing changes before implying any remediation. This bucket covers proration, seat increases, usage overages, annual renewals, and tax being displayed separately.",
+    "recommended_next_step": "explain_charge",
+    "covers": [
+      "proration",
+      "seat_increase",
+      "usage_overage",
+      "annual_support_renewal",
+      "tax_display"
+    ]
   },
-  "proration": {
-    "policy": "Mid-cycle upgrades create prorated line items. If the calculation matches the plan change timing, explain the charge instead of applying a credit.",
-    "recommended_next_step": "explain_charge"
+  "credit_or_waiver_review": {
+    "policy": "Use account and invoice evidence to determine whether the customer may qualify for a credit, waiver, or manual review. This bucket covers duplicate charges, late-fee waivers, setup-fee waivers, and outage or SLA service credits.",
+    "recommended_next_step": "draft_credit_or_review_offer",
+    "covers": [
+      "duplicate_charge",
+      "late_fee_waiver",
+      "setup_fee_waiver",
+      "service_credit"
+    ]
   },
-  "late_fee_waiver": {
-    "policy": "A one-time courtesy late-fee waiver may be granted when the account has no recent waiver history and the account is otherwise healthy.",
-    "recommended_next_step": "draft_credit_confirmation"
+  "refund_status": {
+    "policy": "Use this when the customer asks about the status of an already-approved refund. Share the current refund status and next milestone without claiming the refund has completed unless the data says so.",
+    "recommended_next_step": "share_status",
+    "covers": [
+      "refund_status"
+    ]
   },
-  "service_credit": {
-    "policy": "Approved outage or SLA incidents may qualify for a service credit when the account is on the impacted plan or workspace tier.",
-    "recommended_next_step": "draft_credit_confirmation"
+  "invoice_update_request": {
+    "policy": "Use this when the customer needs invoice metadata corrected, such as a PO number or remit-to detail. Explain that invoice updates require human billing operations review rather than claiming the invoice was changed.",
+    "recommended_next_step": "draft_human_review_offer",
+    "covers": [
+      "invoice_metadata"
+    ]
   },
-  "invoice_metadata": {
-    "policy": "Changes to PO numbers, remit-to details, or invoice metadata require human billing operations review.",
-    "recommended_next_step": "draft_human_review_offer"
-  },
-  "contract_mismatch": {
-    "policy": "If an invoice appears inconsistent with signed commercial terms, escalate to a human specialist for contract review.",
-    "recommended_next_step": "draft_human_review_offer"
+  "contract_or_cancellation_review": {
+    "policy": "Use this when the charge may conflict with cancellation timing or signed commercial terms. Explain what the invoice shows, avoid guessing at contract outcome, and offer human review when the customer disputes timing or contract alignment.",
+    "recommended_next_step": "draft_human_review_offer",
+    "covers": [
+      "post_cancellation_renewal",
+      "contract_mismatch"
+    ]
   }
 }

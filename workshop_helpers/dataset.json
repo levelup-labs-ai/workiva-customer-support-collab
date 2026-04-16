@@ -128,7 +128,7 @@
   {
     "scenario_id": "CP_012",
     "category": "permissions",
-    "user_input": "I’m trying to access a file shared by another company workspace. Is there a special process?",
+    "user_input": "I\u2019m trying to access a file shared by another company workspace. Is there a special process?",
     "source_data": {
       "resource_name": "Partner operating plan",
       "resource_type": "spreadsheet",
@@ -387,13 +387,58 @@
     "source_data": {
       "customer_id": "ACCT_1001",
       "account_name": "Northwind Capital",
-      "invoice_id": "INV_1001",
       "plan_name": "Growth",
-      "last_charge_amount": 49.0,
-      "duplicate_charge": true,
       "credit_eligible": true,
       "billing_status": "active",
-      "notes": "Duplicate invoice generated after retry."
+      "account_context": {
+        "duplicate_charge_detected": true,
+        "latest_invoice_ids": [
+          "INV_1001_RETRY",
+          "INV_1001"
+        ]
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1001_RETRY",
+          "issued_on": "2026-03-02",
+          "due_on": "2026-03-16",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 49.0,
+          "currency": "USD",
+          "po_number": "PO-1001",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Growth monthly subscription",
+              "amount": 49.0,
+              "quantity": 1,
+              "unit_price": 49.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_1001",
+          "issued_on": "2026-03-01",
+          "due_on": "2026-03-15",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "paid",
+          "total_amount": 49.0,
+          "currency": "USD",
+          "po_number": "PO-1001",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Growth monthly subscription",
+              "amount": 49.0,
+              "quantity": 1,
+              "unit_price": 49.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -404,13 +449,67 @@
     "source_data": {
       "customer_id": "ACCT_1002",
       "account_name": "Harbor Analytics",
-      "invoice_id": "INV_1002",
       "plan_name": "Enterprise",
-      "last_charge_amount": 1240.0,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Seat count increased from 18 to 24."
+      "account_context": {
+        "previous_seat_count": 18,
+        "current_seat_count": 24
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1002",
+          "issued_on": "2026-03-28",
+          "due_on": "2026-04-11",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 1240.0,
+          "currency": "USD",
+          "po_number": "PO-2047",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise platform seats",
+              "amount": 1200.0,
+              "quantity": 24,
+              "unit_price": 50.0
+            },
+            {
+              "description": "Platform fee",
+              "amount": 40.0,
+              "quantity": 1,
+              "unit_price": 40.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0992",
+          "issued_on": "2026-02-28",
+          "due_on": "2026-03-14",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 940.0,
+          "currency": "USD",
+          "po_number": "PO-2047",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise platform seats",
+              "amount": 900.0,
+              "quantity": 18,
+              "unit_price": 50.0
+            },
+            {
+              "description": "Platform fee",
+              "amount": 40.0,
+              "quantity": 1,
+              "unit_price": 40.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -421,13 +520,56 @@
     "source_data": {
       "customer_id": "ACCT_1003",
       "account_name": "Stonebridge Advisors",
-      "invoice_id": "INV_1003",
       "plan_name": "Business",
-      "last_charge_amount": 199.0,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Cancellation submitted after renewal executed."
+      "account_context": {
+        "subscription_status": "cancelled_end_of_term",
+        "renewed_on": "2026-03-01",
+        "cancellation_requested_on": "2026-03-03"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1003",
+          "issued_on": "2026-03-01",
+          "due_on": "2026-03-15",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 199.0,
+          "currency": "USD",
+          "po_number": "PO-3012",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly renewal",
+              "amount": 199.0,
+              "quantity": 1,
+              "unit_price": 199.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0993",
+          "issued_on": "2026-02-01",
+          "due_on": "2026-02-15",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 199.0,
+          "currency": "USD",
+          "po_number": "PO-3012",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly renewal",
+              "amount": 199.0,
+              "quantity": 1,
+              "unit_price": 199.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -438,13 +580,62 @@
     "source_data": {
       "customer_id": "ACCT_1004",
       "account_name": "Elm Retail",
-      "invoice_id": "INV_1004",
       "plan_name": "Scale",
-      "last_charge_amount": 86.5,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Mid-cycle upgrade created prorated line item."
+      "account_context": {
+        "previous_plan": "Business",
+        "current_plan": "Scale",
+        "upgrade_effective_on": "2026-03-18"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1004",
+          "issued_on": "2026-03-18",
+          "due_on": "2026-04-01",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 406.5,
+          "currency": "USD",
+          "po_number": "PO-4118",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly subscription",
+              "amount": 320.0,
+              "quantity": 1,
+              "unit_price": 320.0
+            },
+            {
+              "description": "Prorated upgrade to Scale",
+              "amount": 86.5,
+              "quantity": 1,
+              "unit_price": 86.5
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0994",
+          "issued_on": "2026-02-28",
+          "due_on": "2026-03-14",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 320.0,
+          "currency": "USD",
+          "po_number": "PO-4118",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly subscription",
+              "amount": 320.0,
+              "quantity": 1,
+              "unit_price": 320.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -455,13 +646,57 @@
     "source_data": {
       "customer_id": "ACCT_1005",
       "account_name": "Blue Peak Holdings",
-      "invoice_id": "INV_1005",
       "plan_name": "Growth",
-      "last_charge_amount": 72.0,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "refund_pending",
-      "notes": "Prior refund approval exists but settlement delayed."
+      "account_context": {
+        "refund_status": "approved_pending_settlement",
+        "refund_approved_on": "2026-03-07",
+        "expected_settlement_date": "2026-03-21",
+        "refund_amount": 72.0
+      },
+      "invoices": [
+        {
+          "invoice_id": "CM_1005",
+          "issued_on": "2026-03-07",
+          "due_on": "2026-03-21",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "pending",
+          "total_amount": -72.0,
+          "currency": "USD",
+          "po_number": "PO-5005",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Approved refund awaiting settlement",
+              "amount": -72.0,
+              "quantity": 1,
+              "unit_price": -72.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_1005",
+          "issued_on": "2026-03-01",
+          "due_on": "2026-03-15",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "paid",
+          "total_amount": 72.0,
+          "currency": "USD",
+          "po_number": "PO-5005",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Growth monthly subscription",
+              "amount": 72.0,
+              "quantity": 1,
+              "unit_price": 72.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -472,13 +707,62 @@
     "source_data": {
       "customer_id": "ACCT_1006",
       "account_name": "Vista Operations",
-      "invoice_id": "INV_1006",
       "plan_name": "Business",
-      "last_charge_amount": 35.0,
-      "duplicate_charge": false,
       "credit_eligible": true,
       "billing_status": "past_due",
-      "notes": "One-time late fee waiver available."
+      "account_context": {
+        "late_fee_waiver_available": true,
+        "late_fee_waivers_used_last_12_months": 0,
+        "account_health": "otherwise_current"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1006",
+          "issued_on": "2026-03-29",
+          "due_on": "2026-04-12",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "past_due",
+          "total_amount": 335.0,
+          "currency": "USD",
+          "po_number": "PO-6006",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly subscription",
+              "amount": 300.0,
+              "quantity": 1,
+              "unit_price": 300.0
+            },
+            {
+              "description": "Late fee",
+              "amount": 35.0,
+              "quantity": 1,
+              "unit_price": 35.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0996",
+          "issued_on": "2026-02-28",
+          "due_on": "2026-03-14",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 300.0,
+          "currency": "USD",
+          "po_number": "PO-6006",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly subscription",
+              "amount": 300.0,
+              "quantity": 1,
+              "unit_price": 300.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -489,13 +773,55 @@
     "source_data": {
       "customer_id": "ACCT_1007",
       "account_name": "Meridian Bio",
-      "invoice_id": "INV_1007",
       "plan_name": "Enterprise",
-      "last_charge_amount": 4800.0,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Annual support renewal posted this cycle."
+      "account_context": {
+        "support_term": "annual",
+        "renewal_effective_on": "2026-04-01"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1007",
+          "issued_on": "2026-04-01",
+          "due_on": "2026-04-15",
+          "billing_period_start": "2026-04-01",
+          "billing_period_end": "2027-03-31",
+          "status": "open",
+          "total_amount": 4800.0,
+          "currency": "USD",
+          "po_number": "PO-7007",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Annual premium support renewal",
+              "amount": 4800.0,
+              "quantity": 12,
+              "unit_price": 400.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0997",
+          "issued_on": "2026-03-01",
+          "due_on": "2026-03-15",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "paid",
+          "total_amount": 400.0,
+          "currency": "USD",
+          "po_number": "PO-7007",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Monthly premium support",
+              "amount": 400.0,
+              "quantity": 1,
+              "unit_price": 400.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -506,13 +832,55 @@
     "source_data": {
       "customer_id": "ACCT_1008",
       "account_name": "Summit Energy",
-      "invoice_id": "INV_1008",
       "plan_name": "Enterprise",
-      "last_charge_amount": 2100.0,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Invoice metadata changes require manual handling."
+      "account_context": {
+        "current_po_number": "PO-5120",
+        "invoice_po_mismatch": true
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1008",
+          "issued_on": "2026-03-30",
+          "due_on": "2026-04-13",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 2100.0,
+          "currency": "USD",
+          "po_number": "PO-4481",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise workspace subscription",
+              "amount": 2100.0,
+              "quantity": 1,
+              "unit_price": 2100.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0998",
+          "issued_on": "2026-02-28",
+          "due_on": "2026-03-14",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 2100.0,
+          "currency": "USD",
+          "po_number": "PO-4481",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise workspace subscription",
+              "amount": 2100.0,
+              "quantity": 1,
+              "unit_price": 2100.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -523,13 +891,62 @@
     "source_data": {
       "customer_id": "ACCT_1009",
       "account_name": "Atlas Media",
-      "invoice_id": "INV_1009",
       "plan_name": "Growth",
-      "last_charge_amount": 132.0,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Usage-based overage for 3 extra seats."
+      "account_context": {
+        "included_seats": 8,
+        "active_seats": 11,
+        "overage_seats": 3
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1009",
+          "issued_on": "2026-03-31",
+          "due_on": "2026-04-14",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 132.0,
+          "currency": "USD",
+          "po_number": "PO-9009",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Growth base subscription",
+              "amount": 96.0,
+              "quantity": 8,
+              "unit_price": 12.0
+            },
+            {
+              "description": "Extra user overage",
+              "amount": 36.0,
+              "quantity": 3,
+              "unit_price": 12.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0999",
+          "issued_on": "2026-02-28",
+          "due_on": "2026-03-14",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 96.0,
+          "currency": "USD",
+          "po_number": "PO-9009",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Growth base subscription",
+              "amount": 96.0,
+              "quantity": 8,
+              "unit_price": 12.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -540,13 +957,63 @@
     "source_data": {
       "customer_id": "ACCT_1010",
       "account_name": "Lattice Health",
-      "invoice_id": "INV_1010",
       "plan_name": "Scale",
-      "last_charge_amount": 415.0,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Prorated upgrade calculation confirmed."
+      "account_context": {
+        "previous_plan": "Business",
+        "current_plan": "Scale",
+        "upgrade_effective_on": "2026-04-14",
+        "proration_verified": true
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1010",
+          "issued_on": "2026-04-14",
+          "due_on": "2026-04-28",
+          "billing_period_start": "2026-04-01",
+          "billing_period_end": "2026-04-30",
+          "status": "open",
+          "total_amount": 415.0,
+          "currency": "USD",
+          "po_number": "PO-1010",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly subscription",
+              "amount": 275.0,
+              "quantity": 1,
+              "unit_price": 275.0
+            },
+            {
+              "description": "Prorated upgrade to Scale",
+              "amount": 140.0,
+              "quantity": 1,
+              "unit_price": 140.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0910",
+          "issued_on": "2026-03-14",
+          "due_on": "2026-03-28",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "paid",
+          "total_amount": 275.0,
+          "currency": "USD",
+          "po_number": "PO-1010",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly subscription",
+              "amount": 275.0,
+              "quantity": 1,
+              "unit_price": 275.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -557,13 +1024,55 @@
     "source_data": {
       "customer_id": "ACCT_1011",
       "account_name": "Aster Manufacturing",
-      "invoice_id": "INV_1011",
       "plan_name": "Business",
-      "last_charge_amount": 250.0,
-      "duplicate_charge": false,
       "credit_eligible": true,
       "billing_status": "active",
-      "notes": "Sales note promises waived setup fee."
+      "account_context": {
+        "setup_fee_waiver_approved": true,
+        "commercial_exception_source": "sales"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1011",
+          "issued_on": "2026-03-25",
+          "due_on": "2026-04-08",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 250.0,
+          "currency": "USD",
+          "po_number": "PO-1111",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Implementation setup fee",
+              "amount": 250.0,
+              "quantity": 1,
+              "unit_price": 250.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0911",
+          "issued_on": "2026-02-25",
+          "due_on": "2026-03-11",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 180.0,
+          "currency": "USD",
+          "po_number": "PO-1111",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Business monthly subscription",
+              "amount": 180.0,
+              "quantity": 1,
+              "unit_price": 180.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -574,13 +1083,62 @@
     "source_data": {
       "customer_id": "ACCT_1012",
       "account_name": "Praxis Logistics",
-      "invoice_id": "INV_1012",
       "plan_name": "Enterprise",
-      "last_charge_amount": 3400.0,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Potential contract mismatch requires manual review."
+      "account_context": {
+        "signed_quote_reference": "Q-1012-7",
+        "quote_total": 3200.0,
+        "contract_review_required": true
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1012",
+          "issued_on": "2026-03-27",
+          "due_on": "2026-04-10",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 3400.0,
+          "currency": "USD",
+          "po_number": "PO-1212",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise annual subscription",
+              "amount": 3200.0,
+              "quantity": 1,
+              "unit_price": 3200.0
+            },
+            {
+              "description": "Advanced onboarding fee",
+              "amount": 200.0,
+              "quantity": 1,
+              "unit_price": 200.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0912",
+          "issued_on": "2026-02-27",
+          "due_on": "2026-03-13",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 3200.0,
+          "currency": "USD",
+          "po_number": "PO-1212",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise annual subscription",
+              "amount": 3200.0,
+              "quantity": 1,
+              "unit_price": 3200.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -591,13 +1149,40 @@
     "source_data": {
       "customer_id": "ACCT_1013",
       "account_name": "Orchid Ventures",
-      "invoice_id": "INV_1013",
       "plan_name": "Growth",
-      "last_charge_amount": 96.3,
-      "duplicate_charge": false,
       "credit_eligible": false,
       "billing_status": "active",
-      "notes": "Invoice shows tax as separate line."
+      "account_context": {
+        "tax_display": "separate_line"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1013",
+          "issued_on": "2026-03-20",
+          "due_on": "2026-04-03",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 96.3,
+          "currency": "USD",
+          "po_number": "PO-1313",
+          "tax_amount": 6.3,
+          "line_items": [
+            {
+              "description": "Growth monthly subscription",
+              "amount": 90.0,
+              "quantity": 1,
+              "unit_price": 90.0
+            },
+            {
+              "description": "Tax",
+              "amount": 6.3,
+              "quantity": 1,
+              "unit_price": 6.3
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },
@@ -608,13 +1193,56 @@
     "source_data": {
       "customer_id": "ACCT_1014",
       "account_name": "Riverbank Partners",
-      "invoice_id": "INV_1014",
       "plan_name": "Scale",
-      "last_charge_amount": 620.0,
-      "duplicate_charge": false,
       "credit_eligible": true,
       "billing_status": "active",
-      "notes": "Outage credit approved for affected accounts."
+      "account_context": {
+        "service_credit_status": "approved",
+        "service_credit_amount": 120.0,
+        "outage_window": "2026-03-04 to 2026-03-06"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1014",
+          "issued_on": "2026-03-31",
+          "due_on": "2026-04-14",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "open",
+          "total_amount": 620.0,
+          "currency": "USD",
+          "po_number": "PO-1414",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Scale monthly subscription",
+              "amount": 620.0,
+              "quantity": 1,
+              "unit_price": 620.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0914",
+          "issued_on": "2026-02-28",
+          "due_on": "2026-03-14",
+          "billing_period_start": "2026-02-01",
+          "billing_period_end": "2026-02-28",
+          "status": "paid",
+          "total_amount": 620.0,
+          "currency": "USD",
+          "po_number": "PO-1414",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Scale monthly subscription",
+              "amount": 620.0,
+              "quantity": 1,
+              "unit_price": 620.0
+            }
+          ]
+        }
+      ]
     },
     "workflow_expectation": "answer_or_offer_next_step"
   },

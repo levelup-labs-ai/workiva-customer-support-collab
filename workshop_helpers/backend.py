@@ -3,14 +3,31 @@ import concurrent.futures
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import Literal, TypedDict, cast, get_args
 
-from agents import Agent, Runner, function_tool
+from agents import Agent, ModelSettings, Runner, function_tool
 
-from workshop_helpers.data import BillingCase, BillingSourceData, EscalationCase, EscalationSourceData, SupportCase
+from workshop_helpers.data import (
+    BillingCase,
+    BillingInvoiceSourceData,
+    BillingLineItemSourceData,
+    BillingSourceData,
+    EscalationCase,
+    EscalationSourceData,
+    SupportCase,
+)
 from workshop_helpers.setup import suspend_openai_tracing_for_agents
 
 _BILLING_REFERENCE_PATH = Path(__file__).with_name("billing_reference.json")
+
+BillingPolicyIssueType = Literal[
+    "charge_explanation",
+    "credit_or_waiver_review",
+    "refund_status",
+    "invoice_update_request",
+    "contract_or_cancellation_review",
+]
+BILLING_POLICY_ISSUE_TYPES = cast(tuple[str, ...], get_args(BillingPolicyIssueType))
 
 
 @dataclass(frozen=True)
@@ -19,7 +36,7 @@ class BillingAccountRecord:
     plan_name: str
     billing_status: str
     credit_eligible: bool
-    notes: str
+    account_context: dict[str, object]
 
     @classmethod
     def from_billing_source(cls, source_data: BillingSourceData) -> "BillingAccountRecord":
@@ -28,7 +45,7 @@ class BillingAccountRecord:
             plan_name=source_data["plan_name"],
             billing_status=source_data["billing_status"],
             credit_eligible=source_data["credit_eligible"],
-            notes=source_data["notes"],
+            account_context=source_data["account_context"],
         )
 
     @classmethod
@@ -39,7 +56,7 @@ class BillingAccountRecord:
             plan_name="Unknown",
             billing_status="active",
             credit_eligible=False,
-            notes=source_data["notes"],
+            account_context={},
         )
 
     def to_tool_payload(self, account_id: str) -> dict:
@@ -47,29 +64,54 @@ class BillingAccountRecord:
 
 
 @dataclass(frozen=True)
-class InvoiceRecord:
-    account_id: str
-    plan_name: str
-    last_charge_amount: float
-    duplicate_charge: bool
-    credit_eligible: bool
-    billing_status: str
-    notes: str
+class InvoiceLineItemRecord:
+    description: str
+    amount: float
+    quantity: float
+    unit_price: float
 
     @classmethod
-    def from_billing_source(cls, source_data: BillingSourceData) -> "InvoiceRecord":
+    def from_source(cls, source_data: BillingLineItemSourceData) -> "InvoiceLineItemRecord":
         return cls(
-            account_id=source_data["customer_id"],
-            plan_name=source_data["plan_name"],
-            last_charge_amount=source_data["last_charge_amount"],
-            duplicate_charge=source_data["duplicate_charge"],
-            credit_eligible=source_data["credit_eligible"],
-            billing_status=source_data["billing_status"],
-            notes=source_data["notes"],
+            description=source_data["description"],
+            amount=source_data["amount"],
+            quantity=source_data["quantity"],
+            unit_price=source_data["unit_price"],
         )
 
-    def to_tool_payload(self, invoice_id: str) -> dict:
-        return {"invoice_id": invoice_id, **asdict(self)}
+
+@dataclass(frozen=True)
+class InvoiceRecord:
+    invoice_id: str
+    issued_on: str
+    due_on: str
+    billing_period_start: str
+    billing_period_end: str
+    status: str
+    total_amount: float
+    currency: str
+    po_number: str
+    tax_amount: float
+    line_items: list[InvoiceLineItemRecord]
+
+    @classmethod
+    def from_source(cls, source_data: BillingInvoiceSourceData) -> "InvoiceRecord":
+        return cls(
+            invoice_id=source_data["invoice_id"],
+            issued_on=source_data["issued_on"],
+            due_on=source_data["due_on"],
+            billing_period_start=source_data["billing_period_start"],
+            billing_period_end=source_data["billing_period_end"],
+            status=source_data["status"],
+            total_amount=source_data["total_amount"],
+            currency=source_data["currency"],
+            po_number=source_data["po_number"],
+            tax_amount=source_data["tax_amount"],
+            line_items=[InvoiceLineItemRecord.from_source(item) for item in source_data["line_items"]],
+        )
+
+    def to_tool_payload(self) -> dict:
+        return asdict(self)
 
 
 class BackendSnapshot(TypedDict):
@@ -79,22 +121,30 @@ class BackendSnapshot(TypedDict):
 
 
 BILLING_ACCOUNT_DB: dict[str, BillingAccountRecord] = {}
-INVOICE_DB: dict[str, InvoiceRecord] = {}
+ACCOUNT_INVOICE_DB: dict[str, list[InvoiceRecord]] = {}
 BILLING_REFERENCE_DB: dict[str, dict] = (
     json.loads(_BILLING_REFERENCE_PATH.read_text()) if _BILLING_REFERENCE_PATH.exists() else {}
 )
+_missing_policy_topics = set(BILLING_POLICY_ISSUE_TYPES) - set(BILLING_REFERENCE_DB)
+_unexpected_policy_topics = set(BILLING_REFERENCE_DB) - set(BILLING_POLICY_ISSUE_TYPES)
+if _missing_policy_topics or _unexpected_policy_topics:
+    raise RuntimeError(
+        "billing_reference.json is out of sync with BillingPolicyIssueType: "
+        f"missing={sorted(_missing_policy_topics)} unexpected={sorted(_unexpected_policy_topics)}"
+    )
+
 
 def snapshot_backend() -> BackendSnapshot:
     return {
         "billing_account_count": len(BILLING_ACCOUNT_DB),
-        "invoice_count": len(INVOICE_DB),
+        "invoice_count": sum(len(invoices) for invoices in ACCOUNT_INVOICE_DB.values()),
         "billing_reference_topics": len(BILLING_REFERENCE_DB),
     }
 
 
 @function_tool
 def get_billing_account(account_id: str) -> dict:
-    """Look up the billing account record for a customer or workspace."""
+    """Look up the billing account record for a customer or workspace after reading the billing policy for the issue."""
     account = BILLING_ACCOUNT_DB.get(account_id)
     if not account:
         return {"error": f"Billing account not found: {account_id}"}
@@ -102,27 +152,41 @@ def get_billing_account(account_id: str) -> dict:
 
 
 @function_tool
-def get_invoice_details(invoice_id: str) -> dict:
-    """Fetch the invoice metadata and issue flags for a billing case."""
-    invoice = INVOICE_DB.get(invoice_id)
-    if not invoice:
-        return {"error": f"Invoice not found: {invoice_id}"}
-    return invoice.to_tool_payload(invoice_id)
+def list_invoices(account_id: str) -> dict:
+    """List invoices for a billing account, including totals and structured line items.
+
+    Read the billing policy for the issue before calling this tool.
+    """
+    invoices = ACCOUNT_INVOICE_DB.get(account_id)
+    if invoices is None:
+        return {"error": f"Billing account not found: {account_id}"}
+    return {"account_id": account_id, "invoices": [invoice.to_tool_payload() for invoice in invoices]}
 
 
 @function_tool
-def read_billing_reference(topic: str) -> dict:
-    """Read billing guidance from the local JSON reference file."""
-    article = BILLING_REFERENCE_DB.get(topic)
-    if not article:
-        return {"error": f"No billing guidance found for topic: {topic}"}
-    return {"topic": topic, **article}
+def get_billing_policy(issue_type: BillingPolicyIssueType) -> dict:
+    """Call this first before any other billing tool to retrieve the applicable billing policy.
+
+    Supported issue_type values are:
+    - charge_explanation: invoice increases, proration, annual renewals, overages, or tax display questions
+    - credit_or_waiver_review: duplicate charges, late-fee removals, setup-fee waivers, or outage/service credits
+    - refund_status: the status of an already-approved refund
+    - invoice_update_request: PO number or invoice metadata corrections
+    - contract_or_cancellation_review: post-cancellation charges or mismatches with signed terms
+
+    If the user request overlaps multiple categories, choose the closest primary issue.
+    """
+    return {
+        "issue_type": issue_type,
+        "policy": BILLING_REFERENCE_DB[issue_type],
+        "supported_issue_types": list(BILLING_POLICY_ISSUE_TYPES),
+    }
 
 
 TOOLS = [
+    get_billing_policy,
     get_billing_account,
-    get_invoice_details,
-    read_billing_reference,
+    list_invoices,
 ]
 
 
@@ -135,6 +199,7 @@ def build_billing_agent(
         instructions=instructions,
         tools=TOOLS,
         model=model,
+        model_settings=ModelSettings(temperature=0, parallel_tool_calls=False),
     )
 
 
@@ -194,14 +259,19 @@ def _seed_account_record(case: BillingCase | EscalationCase) -> BillingAccountRe
     return BillingAccountRecord.from_escalation_source(case["source_data"])
 
 
-def _seed_invoice_record(case: BillingCase) -> tuple[str, InvoiceRecord]:
+def _seed_invoice_records(case: BillingCase) -> tuple[str, list[InvoiceRecord]]:
     source_data = case["source_data"]
-    return source_data["invoice_id"], InvoiceRecord.from_billing_source(source_data)
+    invoice_sources = sorted(
+        source_data["invoices"],
+        key=lambda invoice: (invoice["issued_on"], invoice["invoice_id"]),
+        reverse=True,
+    )
+    return source_data["customer_id"], [InvoiceRecord.from_source(invoice) for invoice in invoice_sources]
 
 
 def hydrate_backend_from_dataset(dataset: list[SupportCase]) -> BackendSnapshot:
     BILLING_ACCOUNT_DB.clear()
-    INVOICE_DB.clear()
+    ACCOUNT_INVOICE_DB.clear()
 
     for case in dataset:
         if case["category"] not in {"billing", "escalation"}:
@@ -214,7 +284,7 @@ def hydrate_backend_from_dataset(dataset: list[SupportCase]) -> BackendSnapshot:
         if hydration_case["category"] != "billing":
             continue
 
-        invoice_id, invoice_record = _seed_invoice_record(hydration_case)
-        INVOICE_DB.setdefault(invoice_id, invoice_record)
+        invoice_account_id, invoice_records = _seed_invoice_records(hydration_case)
+        ACCOUNT_INVOICE_DB.setdefault(invoice_account_id, invoice_records)
 
     return snapshot_backend()

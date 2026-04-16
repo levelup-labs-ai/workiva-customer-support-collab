@@ -5,16 +5,35 @@ from typing import Literal, TypedDict, cast
 _DATASET_PATH = Path(__file__).with_name("dataset.json")
 
 
+class BillingLineItemSourceData(TypedDict):
+    description: str
+    amount: float
+    quantity: float
+    unit_price: float
+
+
+class BillingInvoiceSourceData(TypedDict):
+    invoice_id: str
+    issued_on: str
+    due_on: str
+    billing_period_start: str
+    billing_period_end: str
+    status: str
+    total_amount: float
+    currency: str
+    po_number: str
+    tax_amount: float
+    line_items: list[BillingLineItemSourceData]
+
+
 class BillingSourceData(TypedDict):
     customer_id: str
     account_name: str
-    invoice_id: str
     plan_name: str
-    last_charge_amount: float
-    duplicate_charge: bool
     credit_eligible: bool
     billing_status: str
-    notes: str
+    account_context: dict[str, object]
+    invoices: list[BillingInvoiceSourceData]
 
 
 class EscalationSourceData(TypedDict):
