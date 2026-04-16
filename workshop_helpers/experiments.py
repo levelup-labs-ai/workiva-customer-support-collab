@@ -17,7 +17,10 @@ BRAND_VOICE_CALIBRATION_DATASET_NAME = "workiva-brand-voice-judge-calibration"
 BRAND_VOICE_CALIBRATION_EXAMPLES = [
     {
         "example_id": "BV_001",
-        "response_text": "I checked the invoice and found the account appears eligible for a billing credit. If you confirm, support can apply the credit to the account.",
+        "response_text": (
+            "I checked the invoice and found the account appears eligible for a billing credit. "
+            "If you confirm, support can apply the credit to the account."
+        ),
         "expected_label": "Good",
         "annotation_note": "Clear, calm, and does not claim to take the write action.",
     },
@@ -29,7 +32,10 @@ BRAND_VOICE_CALIBRATION_EXAMPLES = [
     },
     {
         "example_id": "BV_003",
-        "response_text": "I understand why the duplicate charge is frustrating. The account data suggests this may qualify for a credit, and I can ask the billing team to apply it after you confirm.",
+        "response_text": (
+            "I understand why the duplicate charge is frustrating. The account data suggests this "
+            "may qualify for a credit, and I can ask the billing team to apply it after you confirm."
+        ),
         "expected_label": "Good",
         "annotation_note": "Empathetic and careful about action permission.",
     },
