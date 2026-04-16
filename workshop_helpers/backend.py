@@ -94,16 +94,24 @@ def snapshot_backend() -> BackendSnapshot:
 
 @function_tool
 def get_billing_account(account_id: str) -> dict:
-    """Look up the billing account record for a customer or workspace."""
+    """Look up the billing account record for a customer or workspace, including related invoice IDs."""
     account = BILLING_ACCOUNT_DB.get(account_id)
     if not account:
         return {"error": f"Billing account not found: {account_id}"}
-    return account.to_tool_payload(account_id)
+    payload = account.to_tool_payload(account_id)
+    invoice_ids = sorted(
+        invoice_id for invoice_id, invoice in INVOICE_DB.items() if invoice.account_id == account_id
+    )
+    if invoice_ids:
+        payload["invoice_ids"] = invoice_ids
+        if len(invoice_ids) == 1:
+            payload["current_invoice_id"] = invoice_ids[0]
+    return payload
 
 
 @function_tool
 def get_invoice_details(invoice_id: str) -> dict:
-    """Fetch the invoice metadata and issue flags for a billing case."""
+    """Fetch invoice metadata and issue flags. Requires an invoice_id such as INV_1008, not an account_id."""
     invoice = INVOICE_DB.get(invoice_id)
     if not invoice:
         return {"error": f"Invoice not found: {invoice_id}"}
