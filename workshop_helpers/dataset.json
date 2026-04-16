@@ -1247,6 +1247,128 @@
     "workflow_expectation": "answer_or_offer_next_step"
   },
   {
+    "scenario_id": "CB_015",
+    "category": "billing",
+    "user_input": "Can you switch my billing address on the account to 200 Market Street, San Francisco, CA 94105 and send the updated invoice to AP today?",
+    "source_data": {
+      "customer_id": "ACCT_1015",
+      "account_name": "Summit Procurement Group",
+      "plan_name": "Enterprise",
+      "credit_eligible": false,
+      "billing_status": "active",
+      "account_context": {
+        "current_billing_address": "145 Spear Street, Suite 900, San Francisco, CA 94105",
+        "requested_billing_address": "200 Market Street, San Francisco, CA 94105",
+        "accounts_payable_contact": "ap@summitprocurement.com"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1015",
+          "issued_on": "2026-04-01",
+          "due_on": "2026-04-15",
+          "billing_period_start": "2026-04-01",
+          "billing_period_end": "2026-04-30",
+          "status": "open",
+          "total_amount": 1850.0,
+          "currency": "USD",
+          "po_number": "PO-1515",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise workspace subscription",
+              "amount": 1850.0,
+              "quantity": 1,
+              "unit_price": 1850.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0915",
+          "issued_on": "2026-03-01",
+          "due_on": "2026-03-15",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "paid",
+          "total_amount": 1850.0,
+          "currency": "USD",
+          "po_number": "PO-1515",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise workspace subscription",
+              "amount": 1850.0,
+              "quantity": 1,
+              "unit_price": 1850.0
+            }
+          ]
+        }
+      ]
+    },
+    "workflow_expectation": "answer_or_offer_next_step"
+  },
+  {
+    "scenario_id": "CB_016",
+    "category": "billing",
+    "user_input": "Can you update our billing address and legal entity name before the next renewal invoice goes out?",
+    "source_data": {
+      "customer_id": "ACCT_1016",
+      "account_name": "Pioneer Grid Services",
+      "plan_name": "Enterprise",
+      "credit_eligible": false,
+      "billing_status": "active",
+      "account_context": {
+        "current_billing_address": "600 Congress Avenue, Austin, TX 78701",
+        "requested_billing_address": "2200 Ross Avenue, Dallas, TX 75201",
+        "current_legal_entity": "Pioneer Grid Services LLC",
+        "requested_legal_entity": "Pioneer Grid Holdings LLC",
+        "next_renewal_invoice_date": "2026-05-01"
+      },
+      "invoices": [
+        {
+          "invoice_id": "INV_1016",
+          "issued_on": "2026-04-01",
+          "due_on": "2026-04-15",
+          "billing_period_start": "2026-04-01",
+          "billing_period_end": "2026-04-30",
+          "status": "paid",
+          "total_amount": 2400.0,
+          "currency": "USD",
+          "po_number": "PO-1616",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise platform subscription",
+              "amount": 2400.0,
+              "quantity": 1,
+              "unit_price": 2400.0
+            }
+          ]
+        },
+        {
+          "invoice_id": "INV_0916",
+          "issued_on": "2026-03-01",
+          "due_on": "2026-03-15",
+          "billing_period_start": "2026-03-01",
+          "billing_period_end": "2026-03-31",
+          "status": "paid",
+          "total_amount": 2400.0,
+          "currency": "USD",
+          "po_number": "PO-1616",
+          "tax_amount": 0.0,
+          "line_items": [
+            {
+              "description": "Enterprise platform subscription",
+              "amount": 2400.0,
+              "quantity": 1,
+              "unit_price": 2400.0
+            }
+          ]
+        }
+      ]
+    },
+    "workflow_expectation": "answer_or_offer_next_step"
+  },
+  {
     "scenario_id": "CE_004",
     "category": "escalation",
     "user_input": "We may have shared a sensitive document with the wrong external party. Please help immediately.",
